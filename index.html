@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en-AU" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chithi Gunatilake — Mechatronic Systems Engineer</title>
+<meta name="description" content="Chithi Gunatilake — Electronics and Controls Lead at ANU Formula Sport. Mechatronic systems engineering student in Canberra building safety-critical automotive electronics.">
+<meta name="author" content="Chithi Gunatilake">
+<meta name="theme-color" content="#F4F5F6">
+
+<meta property="og:type" content="profile">
+<meta property="og:title" content="Chithi Gunatilake — Mechatronic Systems Engineer">
+<meta property="og:description" content="Electronics and Controls Lead at ANU Formula Sport. Safety-critical automotive electronics, FPGA, embedded systems.">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+
+<script>
+  /* set the theme before first paint so there is no flash */
+  (function () {
+    /* marks that scripting is live, so the reveal animation may hide content */
+    document.documentElement.classList.add("js");
+    try {
+      var saved = localStorage.getItem("cg-theme");
+      var dark = saved ? saved === "dark"
+        : window.matchMedia("(prefers-color-scheme: dark)").matches;
+      document.documentElement.setAttribute("data-theme", dark ? "dark" : "light");
+    } catch (e) {}
+  })();
+</script>
+
+<!-- shared icon defs -->
+</head>
+<body>
+
+<a class="skip" href="#profile">Skip to content</a>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-mail" viewBox="0 0 16 16"><path d="M1.5 3.5h13v9h-13z" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M1.5 4l6.5 5 6.5-5" fill="none" stroke="currentColor" stroke-width="1.3"/></symbol>
+    <symbol id="i-phone" viewBox="0 0 16 16"><path d="M3 2.5h3l1 3-1.6 1.2a9 9 0 0 0 3.9 3.9L10.5 9l3 1v3a1 1 0 0 1-1.1 1A11.5 11.5 0 0 1 2 3.6 1 1 0 0 1 3 2.5z" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></symbol>
+    <symbol id="i-pin" viewBox="0 0 16 16"><path d="M8 14.5S13 9.9 13 6.5a5 5 0 0 0-10 0C3 9.9 8 14.5 8 14.5z" fill="none" stroke="currentColor" stroke-width="1.3"/><circle cx="8" cy="6.3" r="1.9" fill="none" stroke="currentColor" stroke-width="1.3"/></symbol>
+    <symbol id="i-li" viewBox="0 0 16 16"><path d="M3.4 5.9h2.2v7.7H3.4zM4.5 2.4a1.3 1.3 0 1 1 0 2.6 1.3 1.3 0 0 1 0-2.6zM7.4 5.9h2.1v1.05h.03c.3-.56 1.03-1.15 2.12-1.15 2.27 0 2.69 1.44 2.69 3.32v4.48h-2.24V9.58c0-.81-.02-1.86-1.15-1.86-1.16 0-1.33.88-1.33 1.8v4.08H7.4z" fill="currentColor"/></symbol>
+    <symbol id="i-gh" viewBox="0 0 16 16"><path d="M8 .8a7.2 7.2 0 0 0-2.28 14.04c.36.07.49-.16.49-.35v-1.2C4.2 13.72 3.78 12.3 3.78 12.3c-.32-.83-.79-1.05-.79-1.05-.65-.44.05-.43.05-.43.72.05 1.09.74 1.09.74.64 1.09 1.67.78 2.08.6.06-.47.25-.79.45-.97-1.6-.18-3.28-.8-3.28-3.55 0-.79.28-1.43.74-1.93-.07-.19-.32-.92.07-1.91 0 0 .6-.19 1.98.74a6.8 6.8 0 0 1 3.6 0c1.37-.93 1.97-.74 1.97-.74.4.99.15 1.72.07 1.91.46.5.74 1.14.74 1.93 0 2.76-1.68 3.37-3.28 3.55.26.22.49.66.49 1.33v1.97c0 .19.13.42.5.35A7.2 7.2 0 0 0 8 .8z" fill="currentColor"/></symbol>
+    <symbol id="i-pdf" viewBox="0 0 16 16"><path d="M8 1.8v8.4M4.8 7.4 8 10.6l3.2-3.2M2.6 13.4h10.8" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-out" viewBox="0 0 16 16"><path d="M6 3h7v7M13 3 4 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-sun" viewBox="0 0 16 16"><circle cx="8" cy="8" r="3.1" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M8 .9v1.8M8 13.3v1.8M15.1 8h-1.8M2.7 8H.9M13 3l-1.3 1.3M4.3 11.7 3 13M13 13l-1.3-1.3M4.3 4.3 3 3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></symbol>
+    <symbol id="i-moon" viewBox="0 0 16 16"><path d="M13.6 9.9A6 6 0 0 1 6.1 2.4a6 6 0 1 0 7.5 7.5z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></symbol>
+
+    <!-- project glyphs: schematic-ish marks, no stock photography -->
+    <symbol id="g-board" viewBox="0 0 40 40"><rect x="4.5" y="4.5" width="31" height="31" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="14" y="14" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.2"/><path d="M20 4.5v9.5M20 26v9.5M4.5 20H14M26 20h9.5" stroke="currentColor" stroke-width="1.2"/><circle cx="20" cy="20" r="1.8" fill="currentColor"/></symbol>
+    <symbol id="g-brake" viewBox="0 0 40 40"><circle cx="20" cy="20" r="14" fill="none" stroke="currentColor" stroke-width="1.2"/><circle cx="20" cy="20" r="6" fill="none" stroke="currentColor" stroke-width="1.2"/><path d="M20 6v6M20 28v6M6 20h6M28 20h6M10 10l4.2 4.2M25.8 25.8 30 30M30 10l-4.2 4.2M14.2 25.8 10 30" stroke="currentColor" stroke-width="1.2"/></symbol>
+    <symbol id="g-signal" viewBox="0 0 40 40"><path d="M3 28h6l4-16 5 22 5-26 4 20h10" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round"/></symbol>
+    <symbol id="g-hv" viewBox="0 0 40 40"><path d="M22 4 11 22h7l-3 14 14-19h-7z" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></symbol>
+    <symbol id="g-buck" viewBox="0 0 40 40"><path d="M3 12h10v16h14V12h10" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M3 32h34" stroke="currentColor" stroke-width="1" stroke-dasharray="2 3"/></symbol>
+    <symbol id="g-key" viewBox="0 0 40 40"><rect x="3.5" y="10.5" width="33" height="19" rx="2" fill="none" stroke="currentColor" stroke-width="1.2"/><path d="M9 16h4M16 16h4M23 16h4M30 16h1.5M9 22h4M16 22h4M23 22h8M12 27.5h16" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></symbol>
+    <symbol id="g-mcu" viewBox="0 0 40 40"><rect x="10.5" y="10.5" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.2"/><path d="M15 10.5V6M20 10.5V6M25 10.5V6M15 29.5V34M20 29.5V34M25 29.5V34M10.5 15H6M10.5 20H6M10.5 25H6M29.5 15H34M29.5 20H34M29.5 25H34" stroke="currentColor" stroke-width="1.2"/></symbol>
+    <symbol id="g-pid" viewBox="0 0 40 40"><path d="M3 30c6 0 6-19 12-19s6 12 10 12 6-5 12-5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><path d="M3 34h34M3 34V5" stroke="currentColor" stroke-width="1"/></symbol>
+    <symbol id="g-led" viewBox="0 0 40 40"><path d="M14 26V14l12 6z" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><path d="M26 13v14M3 20h11M26 20h11" stroke="currentColor" stroke-width="1.3"/><path d="M28 12l4-4M31 15l4-4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></symbol>
+  </defs>
+</svg>
+
+<!-- ---------- top rail ---------- -->
+<div class="rail">
+  <a class="monogram" href="/" title="Back to Chithi's sites">CG</a>
+  <div class="rail-actions">
+    <button class="chip-btn" id="themeBtn" type="button" aria-label="Switch to dark theme">
+      <svg aria-hidden="true" id="themeIcon"><use href="#i-moon"/></svg>
+    </button>
+  </div>
+</div>
+
+<!-- ---------- hero ---------- -->
+<header class="hero" id="hero">
+  <div class="hero-grid" aria-hidden="true"></div>
+  <div class="glass a" aria-hidden="true"></div>
+  <div class="glass b" aria-hidden="true"></div>
+  <div class="glass c" aria-hidden="true"></div>
+
+  <div class="hero-stage">
+    <p class="hero-eyebrow">Mechatronic Systems Engineering</p>
+    <h1 class="hero-title"><span class="ln">Chithi</span><span class="ln">Gunatilake</span></h1>
+    <p class="hero-sub">Electronics and Controls Lead at ANU Formula Sport. I design safety-critical hardware for race cars — and lead the engineers who build it.</p>
+
+    <div class="hero-meta">
+      <span><svg aria-hidden="true"><use href="#i-pin"/></svg>Canberra, ACT</span>
+      <a href="mailto:chithi.gunatilake@gmail.com"><svg aria-hidden="true"><use href="#i-mail"/></svg>chithi.gunatilake@gmail.com</a>
+      <a href="https://www.linkedin.com/in/chithi-gunatilake" target="_blank" rel="noopener"><svg aria-hidden="true"><use href="#i-li"/></svg>LinkedIn</a>
+      <a href="https://github.com/chithigun23" target="_blank" rel="noopener"><svg aria-hidden="true"><use href="#i-gh"/></svg>GitHub</a>
+    </div>
+  </div>
+
+  <div class="hero-hint">Scroll to descend</div>
+</header>
+
+<!-- ---------- deck ---------- -->
+<main class="deck">
+
+  <!-- 01 profile -->
+  <section class="section" id="profile" data-label="01 / Profile">
+    <div class="section-inner">
+      <div class="section-head rv">
+        <h2>Hardware that has to work the first time.</h2>
+        <p class="tag">01 / Profile</p>
+      </div>
+
+      <div class="profile">
+        <div class="rv">
+          <p>I'm a <strong>mechatronic systems engineering</strong> student at the Australian National University, with a completed physics and mathematics degree behind it. Most of my work sits where control theory meets a soldering iron: <strong>safety-critical circuits for Formula SAE vehicles</strong>, where a design either passes scrutineering and survives a race weekend, or it doesn't.</p>
+          <p>As Electronics and Controls Lead at ANU Formula Sport I run a team of five engineers, each owning a sub-project, while we plan the non-tractive electronics for a new electric vehicle and keep the existing combustion car running. Before university engineering, two years as an <strong>Army officer cadet at ADFA</strong> taught me how to plan, delegate and lead when conditions are bad — which turns out to be most of a competition build season.</p>
+          <p>I care about designs that are <strong>documented, testable and compliant</strong>: AEC-Q qualified parts, written test methodology, and rules traceability, rather than a board that works on the bench and nowhere else.</p>
+        </div>
+
+        <div class="stats rv">
+          <div class="stat"><div class="stat-n"><em>5</em></div><div class="stat-l">Engineers led</div></div>
+          <div class="stat"><div class="stat-n">2</div><div class="stat-l">Student engineering teams</div></div>
+          <div class="stat"><div class="stat-n">12</div><div class="stat-l">Public repositories</div></div>
+          <div class="stat"><div class="stat-n">2</div><div class="stat-l">ANU degrees / 1 complete</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 02 experience -->
+  <section class="section" id="experience" data-label="02 / Experience">
+    <div class="section-inner">
+      <div class="section-head rv">
+        <h2>Experience</h2>
+        <p class="tag">02 / Roles</p>
+      </div>
+
+      <div class="timeline">
+
+        <article class="tl-item rv">
+          <div class="tl-when mono"><b>2024 &ndash; current</b>ANU Formula Sport</div>
+          <div class="tl-body">
+            <div class="role-card">
+              <p class="role-org">ANU Formula Sport &middot; Formula SAE</p>
+              <h3 class="role-title">Electronics and Controls Lead</h3>
+              <span class="role-span mono">2026 &ndash; current</span>
+              <ul class="bullets">
+                <li>Implementing systems engineering principles across a multi-discipline student team</li>
+                <li>Leading 5 engineers, each running an individual sub-project</li>
+                <li>Planning and developing the non-tractive electronic systems for an electric vehicle</li>
+                <li>Upkeep and upgrades on the previous internal combustion vehicle</li>
+                <li>Developed technical training programs for new members</li>
+              </ul>
+            </div>
+
+            <div class="role-card">
+              <p class="role-org">ANU Formula Sport &middot; Formula SAE</p>
+              <h3 class="role-title">Low Voltage and Powertrain Engineer</h3>
+              <span class="role-span mono">2024 &ndash; 2025</span>
+              <ul class="bullets">
+                <li>Designed safety-critical control circuits</li>
+                <li>Created hardware testing methodology and troubleshooting procedures</li>
+                <li>Onboarded and mentored new members</li>
+                <li>Designed engine-adjacent components in SolidWorks within a small engineering team</li>
+                <li>Assisted in the financial reporting process</li>
+              </ul>
+            </div>
+          </div>
+        </article>
+
+        <article class="tl-item rv">
+          <div class="tl-when mono"><b>2025 &ndash; current</b>ANU Rocketry</div>
+          <div class="tl-body">
+            <div class="role-card">
+              <p class="role-org">ANU Rocketry</p>
+              <h3 class="role-title">Payload Engineer</h3>
+              <span class="role-span mono">2025 &ndash; current</span>
+              <ul class="bullets">
+                <li>Supported the engineering design process for a scientific payload flown on an AURC rocket</li>
+                <li>Co-designed and assembled a laser control system</li>
+              </ul>
+            </div>
+          </div>
+        </article>
+
+        <article class="tl-item rv">
+          <div class="tl-when mono"><b>2021 &ndash; 2022</b>Australian Defence Force</div>
+          <div class="tl-body">
+            <div class="role-card">
+              <p class="role-org">Australian Army &middot; Australian Defence Force Academy</p>
+              <h3 class="role-title">Trainee Officer (Officer Cadet)</h3>
+              <span class="role-span mono">2021 &ndash; 2022</span>
+              <ul class="bullets">
+                <li>Led sections in a field environment</li>
+                <li>Developed section- and platoon-level plans for operations</li>
+                <li>Demonstrated leadership under arduous conditions through Leadership Challenges 1 and 2, division-level leadership and followership exercises</li>
+                <li>Trained in personnel management and administration</li>
+              </ul>
+            </div>
+          </div>
+        </article>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- 03 projects -->
+  <section class="section" id="projects" data-label="03 / Projects">
+    <div class="section-inner">
+      <div class="section-head rv">
+        <h2>Boards, firmware and control loops.</h2>
+        <p class="tag">03 / Selected work</p>
+      </div>
+
+      <div class="proj-grid rv">
+
+        <article class="proj">
+          <div class="proj-top">
+            <svg class="proj-glyph" aria-hidden="true"><use href="#g-brake"/></svg>
+            <span class="proj-id mono">P.01</span>
+          </div>
+          <h3>ANUFS BSPD 2026</h3>
+          <p>Brake System Plausibility Device for the 2026 Formula SAE combustion car, designed to be AEC-Q100 / Q101 / Q200 compliant end to end.</p>
+          <div class="chips"><span class="chip hot">Safety critical</span><span class="chip">KiCad</span><span class="chip">AEC-Q</span></div>
+          <a class="proj-link" href="https://github.com/chithigun23/ANUFS-BSPD-2026" target="_blank" rel="noopener">Repository <svg aria-hidden="true"><use href="#i-out"/></svg></a>
+        </article>
+
+        <article class="proj">
+          <div class="proj-top">
+            <svg class="proj-glyph" aria-hidden="true"><use href="#g-board"/></svg>
+            <span class="proj-id mono">P.02</span>
+          </div>
+          <h3>ANUFS APPPD</h3>
+          <p>An update to the Accelerator Pedal Position Plausibility Device, keeping the car compliant now that it runs a paddle shift system.</p>
+          <div class="chips"><span class="chip hot">Safety critical</span><span class="chip">KiCad</span><span class="chip">Rules compliance</span></div>
+          <a class="proj-link" href="https://github.com/chithigun23/ANUFS-APPPD" target="_blank" rel="noopener">Repository <svg aria-hidden="true"><use href="#i-out"/></svg></a>
+        </article>
+
+        <article class="proj">
+          <div class="proj-top">
+            <svg class="proj-glyph" aria-hidden="true"><use href="#g-hv"/></svg>
+            <span class="proj-id mono">P.03</span>
+          </div>
+          <h3>ANUFS TSAL</h3>
+          <p>Tractive System Active Light controller for the upcoming ANU Formula Sport electric vehicle — the driver- and marshal-facing indicator of a live HV system.</p>
+          <div class="chips"><span class="chip">EV</span><span class="chip">High voltage</span><span class="chip">KiCad</span></div>
+          <a class="proj-link" href="https://github.com/chithigun23/ANUFS-TSAL" target="_blank" rel="noopener">Repository <svg aria-hidden="true"><use href="#i-out"/></svg></a>
+        </article>
+
+        <article class="proj">
+          <div class="proj-top">
+            <svg class="proj-glyph" aria-hidden="true"><use href="#g-signal"/></svg>
+            <span class="proj-id mono">P.04</span>
+          </div>
+          <h3>ANUFS Telemetry</h3>
+          <p>Custom hardware to measure the parameters and dynamics of the combustion Formula SAE car, turning race weekends into data the team can act on.</p>
+          <div class="chips"><span class="chip">Sensing</span><span class="chip">Embedded</span><span class="chip">Data</span></div>
+          <a class="proj-link" href="https://github.com/chithigun23/ANUFS-Telemetry" target="_blank" rel="noopener">Repository <svg aria-hidden="true"><use href="#i-out"/></svg></a>
+        </article>
+
+        <article class="proj">
+          <div class="proj-top">
+            <svg class="proj-glyph" aria-hidden="true"><use href="#g-mcu"/></svg>
+            <span class="proj-id mono">P.05</span>
+          </div>
+          <h3>Gear Position Emulator</h3>
+          <p>An STM32-based board that mimics a gear position sensor for the 2026 ICE car, so downstream systems can be developed and tested off the engine.</p>
+          <div class="chips"><span class="chip">STM32</span><span class="chip">Firmware</span><span class="chip">Test rig</span></div>
+          <a class="proj-link" href="https://github.com/chithigun23/ANUFS-GearPositionSTM" target="_blank" rel="noopener">Repository <svg aria-hidden="true"><use href="#i-out"/></svg></a>
+        </article>
+
+        <article class="proj">
+          <div class="proj-top">
+            <svg class="proj-glyph" aria-hidden="true"><use href="#g-key"/></svg>
+            <span class="proj-id mono">P.06</span>
+          </div>
+          <h3>Custom Mechanical Keyboard</h3>
+          <p>A from-scratch PCB mechanical keyboard running QMK on Kailh Choc v2 Hide Mountain low-profile switches.</p>
+          <div class="chips"><span class="chip">QMK</span><span class="chip">PCB</span><span class="chip">Personal</span></div>
+          <a class="proj-link" href="https://github.com/chithigun23/CustomMechanicalKeyboard" target="_blank" rel="noopener">Repository <svg aria-hidden="true"><use href="#i-out"/></svg></a>
+        </article>
+
+        <article class="proj">
+          <div class="proj-top">
+            <svg class="proj-glyph" aria-hidden="true"><use href="#g-pid"/></svg>
+            <span class="proj-id mono">P.07</span>
+          </div>
+          <h3>Altitude PID Control</h3>
+          <p>PID control system design for altitude regulation in a no-turn aircraft model — plant modelling, tuning and response analysis in MATLAB.</p>
+          <div class="chips"><span class="chip">MATLAB</span><span class="chip">Control theory</span></div>
+          <a class="proj-link" href="https://github.com/chithigun23/controlSystemsProject" target="_blank" rel="noopener">Repository <svg aria-hidden="true"><use href="#i-out"/></svg></a>
+        </article>
+
+        <article class="proj">
+          <div class="proj-top">
+            <svg class="proj-glyph" aria-hidden="true"><use href="#g-buck"/></svg>
+            <span class="proj-id mono">P.08</span>
+          </div>
+          <h3>Simple Buck Converter</h3>
+          <p>A deliberately simple, reusable buck converter design meant to be dropped into other projects without redesigning the power stage each time.</p>
+          <div class="chips"><span class="chip">Power</span><span class="chip">Reusable block</span></div>
+          <a class="proj-link" href="https://github.com/chithigun23/simpleBuckConverter" target="_blank" rel="noopener">Repository <svg aria-hidden="true"><use href="#i-out"/></svg></a>
+        </article>
+
+      </div>
+
+      <div class="proj-more rv">
+        <a class="chip-btn" href="https://github.com/chithigun23?tab=repositories" target="_blank" rel="noopener">
+          <svg aria-hidden="true"><use href="#i-gh"/></svg><span class="lbl">All repositories</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- 04 education -->
+  <section class="section" id="education" data-label="04 / Education">
+    <div class="section-inner">
+      <div class="section-head rv">
+        <h2>Education</h2>
+        <p class="tag">04 / Australian National University</p>
+      </div>
+
+      <div class="edu-grid rv">
+        <article class="edu">
+          <span class="edu-when mono">2024 &ndash; 2027 (expected)</span>
+          <h3>Bachelor of Engineering (Honours), Mechatronic Systems</h3>
+          <p class="where mono">Australian National University</p>
+          <ul class="bullets">
+            <li>Completed Digital Systems and Microprocessors (FPGA programming)</li>
+            <li>Strong involvement in multiple student teams and societies</li>
+            <li>Engineers Australia Student Member</li>
+            <li>Member of the Physics, Astronomy and Engineering Societies</li>
+          </ul>
+        </article>
+
+        <article class="edu">
+          <span class="edu-when mono">2021 &ndash; 2024 &middot; Graduated</span>
+          <h3>Bachelor of Science, Physics and Mathematics</h3>
+          <p class="where mono">Australian National University &middot; graduated 10 JUL 2024</p>
+          <ul class="bullets">
+            <li>Excelled in experimental physics and data analysis</li>
+            <li>Completed Number Theory and Cryptography</li>
+          </ul>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- 05 skills -->
+  <section class="section" id="skills" data-label="05 / Skills">
+    <div class="section-inner">
+      <div class="section-head rv">
+        <h2>Toolchain</h2>
+        <p class="tag">05 / Skills matrix</p>
+      </div>
+
+      <div class="matrix rv">
+        <div class="mrow">
+          <div class="mkey">Programming</div>
+          <div class="mval">
+            <span class="skill">Verilog</span><span class="skill">Python</span><span class="skill">C</span>
+            <span class="skill">C++</span><span class="skill">MATLAB</span><span class="skill">Rust</span>
+          </div>
+        </div>
+        <div class="mrow">
+          <div class="mkey">EDA / CAD</div>
+          <div class="mval">
+            <span class="skill">KiCad</span><span class="skill">Altium</span><span class="skill">EasyEDA</span>
+            <span class="skill">SolidWorks</span><span class="skill">Fusion 360</span>
+          </div>
+        </div>
+        <div class="mrow">
+          <div class="mkey">Software</div>
+          <div class="mval">
+            <span class="skill">Git</span><span class="skill">LaTeX</span><span class="skill">Linux</span>
+            <span class="skill">Microsoft Office</span><span class="skill">Excel</span>
+          </div>
+        </div>
+        <div class="mrow">
+          <div class="mkey">Hardware</div>
+          <div class="mval plain">Circuit design and manufacturing, server administration, computer and server building.</div>
+        </div>
+        <div class="mrow">
+          <div class="mkey">Leadership</div>
+          <div class="mval plain">Team leadership and mentoring; event planning and logistics; cross-team collaboration.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 06 contact -->
+  <section class="section contact" id="contact" data-label="06 / Contact">
+    <div class="section-inner">
+      <p class="tag rv">06 / Get in touch</p>
+      <h2 class="rv">Let's build something <em>that survives scrutineering.</em></h2>
+      <p class="contact-lead rv">Open to graduate and internship roles in electronics, embedded systems and controls — in Canberra or anywhere the hardware is interesting.</p>
+
+      <div class="contact-list rv">
+        <a class="crow" href="mailto:chithi.gunatilake@gmail.com">
+          <span class="crow-k mono">Email</span>
+          <span class="crow-v">chithi.gunatilake@gmail.com</span>
+          <svg aria-hidden="true"><use href="#i-out"/></svg>
+        </a>
+        <a class="crow" href="https://www.linkedin.com/in/chithi-gunatilake" target="_blank" rel="noopener">
+          <span class="crow-k mono">LinkedIn</span>
+          <span class="crow-v">in/chithi-gunatilake</span>
+          <svg aria-hidden="true"><use href="#i-out"/></svg>
+        </a>
+        <a class="crow" href="https://github.com/chithigun23" target="_blank" rel="noopener">
+          <span class="crow-k mono">GitHub</span>
+          <span class="crow-v">chithigun23</span>
+          <svg aria-hidden="true"><use href="#i-out"/></svg>
+        </a>
+        <div class="crow">
+          <span class="crow-k mono">Based in</span>
+          <span class="crow-v">Canberra, ACT, Australia</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="colophon">
+    <div class="colophon-inner">
+      <span>&copy; <span id="year">2026</span> Chithi Gunatilake</span>
+      <span>Design system after <a href="https://templatemo.com/tm-629-nexus-system" target="_blank" rel="nofollow noopener">Nexus</a> by <a href="https://templatemo.com" target="_blank" rel="nofollow noopener">TemplateMO</a></span>
+    </div>
+  </footer>
+</main>
+
+<!-- ---------- HUD ---------- -->
+<div class="hud">
+  <span class="hud-brand"><span class="hud-dot" aria-hidden="true"></span><span class="hud-name">Chithi Gunatilake</span></span>
+  <span class="hud-sec" id="hudSec">00 / Index</span>
+  <div class="hud-prog">
+    <div class="hud-track"><div class="hud-fill" id="hudFill"></div></div>
+    <span class="hud-pct mono" id="hudPct">000%</span>
+    <div class="hud-nav">
+      <button class="hud-arrow" id="navUp" type="button" aria-label="Previous section">
+        <svg viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2 9L7 4L12 9" stroke="currentColor" stroke-width="1.5"/></svg>
+      </button>
+      <button class="hud-arrow" id="navDown" type="button" aria-label="Next section">
+        <svg viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2 5L7 10L12 5" stroke="currentColor" stroke-width="1.5"/></svg>
+      </button>
+    </div>
+  </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>

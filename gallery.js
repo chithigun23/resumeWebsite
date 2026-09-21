@@ -1,5 +1,6 @@
 /*
-  Gallery: loads gallery/images.json, renders a grid, opens a lightbox viewer.
+  Gallery: loads gallery/images.json (built by update-gallery.py), renders a date-ordered
+  mosaic, and opens each photo in a lightbox alongside its story.
 */
 (function () {
   "use strict";
@@ -9,7 +10,11 @@
   var count = document.getElementById("count");
   var lb = document.getElementById("lb");
   var lbImg = document.getElementById("lbImg");
-  var lbCap = document.getElementById("lbCap");
+  var lbCard = document.getElementById("lbCard");
+  var lbDate = document.getElementById("lbDate");
+  var lbTitle = document.getElementById("lbTitle");
+  var lbText = document.getElementById("lbText");
+  var lbCount = document.getElementById("lbCount");
   var images = [];
   var current = 0;
   var lastFocus = null;
@@ -20,6 +25,16 @@
     });
   }
 
+  function fmtDate(iso) {
+    if (!iso) { return ""; }
+    var p = iso.split("-");
+    var d = new Date(Date.UTC(+p[0], +p[1] - 1, +p[2]));
+    return d.toLocaleDateString("en-AU", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
+  }
+
+  function label(im) { return im.title || (im.date ? "Photo from " + fmtDate(im.date) : "Photo"); }
+
+  /* mosaic: each tile's width follows its aspect ratio, so rows fill edge to edge in date order */
   function render() {
     if (!images.length) {
       count.textContent = "0 photos";
@@ -28,10 +43,12 @@
     }
     count.textContent = images.length + (images.length === 1 ? " photo" : " photos");
     grid.innerHTML = images.map(function (im, i) {
-      var t = esc(im.title || "");
-      return '<button class="g-item" type="button" data-i="' + i + '" aria-label="View ' + (t || "image " + (i + 1)) + '">' +
-        '<img src="' + esc(im.src) + '" alt="' + t + '" loading="lazy" decoding="async">' +
-        (t ? '<span class="g-cap">' + t + "</span>" : "") + "</button>";
+      var cap = [fmtDate(im.date), im.title].filter(Boolean).join(" · ");
+      return '<button class="g-item' + (im.story ? " has-story" : "") + '" type="button" data-i="' + i +
+        '" style="--ar:' + (im.w / im.h).toFixed(4) + '" aria-label="View ' + esc(label(im)) + '">' +
+        '<img src="' + esc(im.thumb || im.src) + '" width="' + im.w + '" height="' + im.h + '" alt="' + esc(label(im)) +
+        '" loading="lazy" decoding="async">' +
+        (cap ? '<span class="g-cap">' + esc(cap) + "</span>" : "") + "</button>";
     }).join("");
   }
 
@@ -39,14 +56,34 @@
     current = (i + images.length) % images.length;
     var im = images[current];
     lbImg.src = im.src;
-    lbImg.alt = im.title || "";
-    lbCap.textContent = (im.title ? im.title + " — " : "") + (current + 1) + " / " + images.length;
+    lbImg.alt = label(im);
+    lbDate.textContent = fmtDate(im.date);
+    lbTitle.textContent = im.title || "";
+    lbTitle.hidden = !im.title;
+    lbText.innerHTML = im.story
+      ? im.story.split(/\r?\n\s*\r?\n/).map(function (para) {
+          return "<p>" + esc(para.trim()).replace(/\r?\n/g, "<br>") + "</p>";
+        }).join("")
+      : "";
+    lbCard.classList.toggle("no-story", !im.story && !im.title);
+    lbCount.textContent = (current + 1) + " / " + images.length;
+    lbCard.scrollTop = 0;
+    lbText.scrollTop = 0;
+    /* warm the neighbours so next/prev feels instant */
+    [current - 1, current + 1].forEach(function (n) {
+      var nb = images[(n + images.length) % images.length];
+      if (nb) { new Image().src = nb.src; }
+    });
+    try { history.replaceState(null, "", "#" + im.id); } catch (e) {}
   }
 
   function open(i) {
     lastFocus = document.activeElement;
     show(i);
     lb.hidden = false;
+    lbCard.classList.remove("pop");
+    void lbCard.offsetWidth; /* restart the pop-in animation */
+    lbCard.classList.add("pop");
     document.body.style.overflow = "hidden";
     document.getElementById("lbClose").focus();
   }
@@ -55,7 +92,16 @@
     lb.hidden = true;
     lbImg.removeAttribute("src");
     document.body.style.overflow = "";
+    try { history.replaceState(null, "", location.pathname + location.search); } catch (e) {}
     if (lastFocus) { lastFocus.focus(); }
+  }
+
+  function openFromHash() {
+    var id = decodeURIComponent(location.hash.slice(1));
+    if (!id) { return; }
+    for (var i = 0; i < images.length; i++) {
+      if (images[i].id === id) { open(i); return; }
+    }
   }
 
   grid.addEventListener("click", function (e) {
@@ -86,7 +132,7 @@
 
   fetch("gallery/images.json", { cache: "no-cache" })
     .then(function (r) { if (!r.ok) { throw new Error(r.status); } return r.json(); })
-    .then(function (data) { images = Array.isArray(data) ? data : []; render(); })
+    .then(function (data) { images = Array.isArray(data) ? data : []; render(); openFromHash(); })
     .catch(function () { images = []; render(); });
 
   /* ---------- theme toggle ---------- */

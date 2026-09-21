@@ -1,9 +1,9 @@
 /* Gallery page — extends style.css tokens */
 
 .g-main {
-  max-width: var(--maxw);
+  max-width: 2000px;
   margin: 0 auto;
-  padding: 120px var(--pad) 80px;
+  padding: 120px clamp(16px, 2.5vw, 44px) 80px;
   min-height: 100vh;
 }
 
@@ -18,24 +18,31 @@
 }
 
 .g-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(260px, 100%), 1fr));
-  gap: 1px;
-  background: var(--line);
-  border: 1px solid var(--line);
+  --rowh: clamp(200px, 19vw, 320px);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
 }
 .g-grid:empty { display: none; }
+/* keeps the last row from stretching to full width */
+.g-grid::after { content: ""; flex-grow: 1000000; }
 
 .g-item {
   position: relative;
-  aspect-ratio: 4 / 3;
+  flex: calc(var(--ar) * 100) 1 calc(var(--ar) * var(--rowh));
+  min-width: 0;
   background: var(--panel);
   overflow: hidden;
   display: block;
-  width: 100%;
   padding: 0;
 }
+.g-item::before {
+  content: "";
+  display: block;
+  padding-top: calc(100% / var(--ar));
+}
 .g-item img {
+  position: absolute; inset: 0;
   width: 100%; height: 100%;
   object-fit: cover;
   transition: transform .6s var(--ease), opacity .4s var(--ease);
@@ -89,32 +96,62 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: color-mix(in srgb, var(--bg) 94%, transparent);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  padding: 24px;
+  background: color-mix(in srgb, var(--bg) 45%, transparent);
+  backdrop-filter: blur(18px) saturate(1.1);
+  -webkit-backdrop-filter: blur(18px) saturate(1.1);
 }
 .lb[hidden] { display: none; }
-.lb-fig {
-  max-width: min(92vw, 1400px);
-  max-height: 92vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-}
-.lb-fig img {
-  max-width: 100%;
-  max-height: calc(92vh - 40px);
-  object-fit: contain;
+.lb-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  width: clamp(560px, 62vw, 1080px);
+  max-height: min(78vh, 760px);
+  grid-template-rows: minmax(0, 1fr);
+  overflow: hidden;
+  background: var(--panel);
   border: 1px solid var(--line);
   box-shadow: var(--shadow-lift);
 }
-.lb-fig figcaption {
+.lb-card.no-story { grid-template-columns: minmax(0, 1fr); width: auto; max-width: min(62vw, 1080px); }
+.lb-card.no-story .lb-story { display: none; }
+.lb-card.pop { animation: lb-pop .38s var(--ease); }
+@keyframes lb-pop {
+  from { opacity: 0; transform: scale(.94) translateY(10px); }
+  to   { opacity: 1; transform: none; }
+}
+.lb-fig {
+  margin: 0;
+  display: grid;
+  place-items: center;
+  background: color-mix(in srgb, var(--ink) 6%, var(--bg));
+  min-height: 0;
+}
+.lb-fig img {
+  max-width: 100%;
+  max-height: min(78vh, 760px);
+  object-fit: contain;
+  display: block;
+}
+.lb-story {
+  padding: 56px 26px 22px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border-left: 1px solid var(--line);
+}
+.lb-date, .lb-count {
   font-size: 11px;
   letter-spacing: .18em;
   text-transform: uppercase;
   color: var(--ink-3);
+  margin: 0;
 }
+.lb-title { font-size: 22px; line-height: 1.2; margin: 0; }
+.lb-text { color: var(--ink-2); line-height: 1.65; font-size: 15px; }
+.lb-text p { margin: 0 0 1em; }
+.lb-count { margin-top: auto; padding-top: 14px; }
 .lb-btn {
   position: absolute;
   width: 44px; height: 44px;
@@ -135,7 +172,20 @@
   .g-main { padding-top: 96px; }
   .rail-actions .chip-btn .lbl { display: none; }
   .rail-actions .chip-btn { padding: 9px 11px; }
-  .lb-prev, .lb-next { top: auto; bottom: 16px; transform: none; }
+  .g-grid { --rowh: 150px; gap: 4px; }
+  .lb { align-items: flex-start; overflow-y: auto; padding: 0 12px; }
+  .lb-card, .lb-card.no-story {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: none;
+    width: 100%; max-width: 100%;
+    max-height: none;
+    overflow: visible;
+    margin: 64px 0 84px;
+  }
+  .lb-fig img { max-height: 60vh; }
+  .lb-story { border-left: 0; border-top: 1px solid var(--line); padding: 20px 18px; overflow: visible; }
+  .lb-prev, .lb-next { position: fixed; top: auto; bottom: 16px; transform: none; }
+  .lb-close { position: fixed; }
   .lb-prev { left: 16px; }
   .lb-next { right: 16px; }
 }

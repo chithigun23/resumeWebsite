@@ -34,6 +34,14 @@
 
   function label(im) { return im.title || (im.date ? "Photo from " + fmtDate(im.date) : "Photo"); }
 
+  function sizePortrait(im) {
+    var height = Math.min(window.innerHeight * 0.78, 760);
+    var detailsWidth = im.story || im.title ? 300 : 0;
+    var availableWidth = Math.max(1, window.innerWidth - 128 - detailsWidth);
+    var photoWidth = Math.min(height * im.w / im.h, availableWidth);
+    lbCard.style.setProperty("--portrait-photo-width", photoWidth.toFixed(1) + "px");
+  }
+
   /* mosaic: each tile's width follows its aspect ratio, so rows fill edge to edge in date order */
   function render() {
     if (!images.length) {
@@ -66,6 +74,8 @@
         }).join("")
       : "";
     lbCard.classList.toggle("no-story", !im.story && !im.title);
+    lbCard.classList.toggle("portrait", im.h > im.w);
+    if (im.h > im.w) { sizePortrait(im); }
     lbCount.textContent = (current + 1) + " / " + images.length;
     lbCard.scrollTop = 0;
     lbText.scrollTop = 0;
@@ -112,6 +122,11 @@
   document.getElementById("lbPrev").addEventListener("click", function () { show(current - 1); });
   document.getElementById("lbNext").addEventListener("click", function () { show(current + 1); });
   lb.addEventListener("click", function (e) { if (e.target === lb) { close(); } });
+  window.addEventListener("resize", function () {
+    if (!lb.hidden && images[current] && images[current].h > images[current].w) {
+      sizePortrait(images[current]);
+    }
+  });
 
   document.addEventListener("keydown", function (e) {
     if (lb.hidden) { return; }

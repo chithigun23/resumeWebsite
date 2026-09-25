@@ -115,6 +115,15 @@
 }
 .lb-card.no-story { grid-template-columns: minmax(0, 1fr); width: auto; max-width: min(62vw, 1080px); }
 .lb-card.no-story .lb-story { display: none; }
+.lb-card.portrait {
+  grid-template-columns: var(--portrait-photo-width) 300px;
+  width: calc(var(--portrait-photo-width) + 302px);
+}
+.lb-card.portrait.no-story {
+  grid-template-columns: var(--portrait-photo-width);
+  width: calc(var(--portrait-photo-width) + 2px);
+  max-width: none;
+}
 .lb-card.pop { animation: lb-pop .38s var(--ease); }
 @keyframes lb-pop {
   from { opacity: 0; transform: scale(.94) translateY(10px); }
@@ -132,6 +141,12 @@
   max-height: min(78vh, 760px);
   object-fit: contain;
   display: block;
+}
+.lb-card.portrait .lb-fig img {
+  width: 100%;
+  height: auto;
+  max-width: none;
+  max-height: none;
 }
 .lb-story {
   padding: 56px 26px 22px;
@@ -174,7 +189,7 @@
   .rail-actions .chip-btn { padding: 9px 11px; }
   .g-grid { --rowh: 150px; gap: 4px; }
   .lb { align-items: flex-start; overflow-y: auto; padding: 0 12px; }
-  .lb-card, .lb-card.no-story {
+  .lb-card, .lb-card.no-story, .lb-card.portrait, .lb-card.portrait.no-story {
     grid-template-columns: minmax(0, 1fr);
     grid-template-rows: none;
     width: 100%; max-width: 100%;

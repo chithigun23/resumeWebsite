@@ -587,7 +587,7 @@ html[data-theme="dark"] .contact .tag::before { background: var(--ink-3); }
   font-weight: 800;
   letter-spacing: -0.04em;
   line-height: 1.02;
-  max-width: 16ch;
+  max-width: 28ch;
 }
 .contact h2 em { font-style: normal; color: var(--volt); }
 .contact-lead {

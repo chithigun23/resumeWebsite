@@ -1,18 +1,26 @@
 <!-- One section per photo: '## id | optional title', then the story. -->
 
-## 2023-09-26_170448 |
+## 2023-09-26_170448 | Engineering labs
+Measuring operational amplifier and RC circuits with an oscilloscope.
 
-## 2024-12-07_145231 |
+## 2024-12-07_145231 | 2024 Formula SAE-A competition garage
+Working hard to keep the car in racing condition in an insanely hot garage.
 
-## 2024-12-09_043947 |
+## 2024-12-09_043947 | 2024 Formula SAE-A competition complete
+Celebrating after taking second place in our category.
 
-## 2025-02-21_151649 |
+## 2025-02-21_151649 | Learning to weld
+Practising my MIG welding skills as part of the ANUFS Powertrain team.
 
-## 2025-02-21_152941 |
+## 2025-02-21_152941 | 2024 Formula SAE-A competition vehicle
 
-## 2025-06-20_142044 |
+## 2025-06-20_142044 | Final send-off for ICE 2024
+Final track day with our 2024 competition vehicle. Rule changes meant we needed to overhaul the chassis and wiring loom.
 
-## 2025-10-14_202549 |
+## 2025-08-07 |
+
+## 2025-10-14_202549 | SMD soldering
+Building a Brake System Plausibility Device using a heat plate.
 
 ## 2025-10-14_233642 |
 
@@ -34,6 +42,8 @@
 
 ## 2026-04-25_210824 |
 
+## 2026-04-28 |
+
 ## 2026-06-16_133554 |
 
 ## 2026-06-20_145831 |
@@ -49,7 +59,3 @@
 ## 2026-08-22_205849 |
 
 ## 2026-09-09_202220 |
-
-## undated-shared-image-7 |
-
-## undated-tmp-f53620d6-34e6-4a7c-ad51-f7f5b37a372c |

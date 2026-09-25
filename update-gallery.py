@@ -6,7 +6,8 @@ Builds the gallery.
 
 Import: each photo is oriented, stripped of all metadata (GPS included), resized and
 saved as gallery/<id>.jpg plus a thumbnail in gallery/thumbs/. HEIC is supported
-(pip install pillow-heif). The <id> is the capture date, e.g. 2025-02-21_151649.
+(pip install pillow-heif). The <id> is normally the capture date, e.g.
+2025-02-21_151649. Date-only names such as 2025-08-07 are also supported.
 
 Stories: gallery/stories.md holds one section per photo. Edit it, then rebuild.
 
@@ -127,8 +128,8 @@ def rebuild():
             w, h = im.size
         s = stories[pid]
         date = None
-        if not pid.startswith("undated-"):
-            date = dt.datetime.strptime(pid, "%Y-%m-%d_%H%M%S").strftime("%Y-%m-%d")
+        if re.fullmatch(r"\d{4}-\d{2}-\d{2}(?:_\d{6})?", pid):
+            date = dt.date.fromisoformat(pid[:10]).isoformat()
         items.append({
             "id": pid,
             "src": f"gallery/{pid}.jpg",

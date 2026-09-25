@@ -6,8 +6,8 @@
   "w": 1800,
   "h": 1350,
   "date": "2023-09-26",
-  "title": "",
-  "story": ""
+  "title": "Engineering labs",
+  "story": "Measuring operational amplifier and RC circuits with an oscilloscope."
  },
  {
   "id": "2024-12-07_145231",
@@ -16,8 +16,8 @@
   "w": 1800,
   "h": 1013,
   "date": "2024-12-07",
-  "title": "",
-  "story": ""
+  "title": "2024 Formula SAE-A competition garage",
+  "story": "Working hard to keep the car in racing condition in an insanely hot garage."
  },
  {
   "id": "2024-12-09_043947",
@@ -26,8 +26,8 @@
   "w": 1450,
   "h": 960,
   "date": "2024-12-09",
-  "title": "",
-  "story": ""
+  "title": "2024 Formula SAE-A competition complete",
+  "story": "Celebrating after taking second place in our category."
  },
  {
   "id": "2025-02-21_151649",
@@ -36,8 +36,8 @@
   "w": 1013,
   "h": 1800,
   "date": "2025-02-21",
-  "title": "",
-  "story": ""
+  "title": "Learning to weld",
+  "story": "Practising my MIG welding skills as part of the ANUFS Powertrain team."
  },
  {
   "id": "2025-02-21_152941",
@@ -46,7 +46,7 @@
   "w": 1800,
   "h": 1013,
   "date": "2025-02-21",
-  "title": "",
+  "title": "2024 Formula SAE-A competition vehicle",
   "story": ""
  },
  {
@@ -56,6 +56,16 @@
   "w": 1800,
   "h": 1192,
   "date": "2025-06-20",
+  "title": "Final send-off for ICE 2024",
+  "story": "Final track day with our 2024 competition vehicle. Rule changes meant we needed to overhaul the chassis and wiring loom."
+ },
+ {
+  "id": "2025-08-07",
+  "src": "gallery/2025-08-07.jpg",
+  "thumb": "gallery/thumbs/2025-08-07.jpg",
+  "w": 1355,
+  "h": 1800,
+  "date": "2025-08-07",
   "title": "",
   "story": ""
  },
@@ -66,8 +76,8 @@
   "w": 1013,
   "h": 1800,
   "date": "2025-10-14",
-  "title": "",
-  "story": ""
+  "title": "SMD soldering",
+  "story": "Building a Brake System Plausibility Device using a heat plate."
  },
  {
   "id": "2025-10-14_233642",
@@ -170,6 +180,16 @@
   "story": ""
  },
  {
+  "id": "2026-04-28",
+  "src": "gallery/2026-04-28.jpg",
+  "thumb": "gallery/thumbs/2026-04-28.jpg",
+  "w": 915,
+  "h": 596,
+  "date": "2026-04-28",
+  "title": "",
+  "story": ""
+ },
+ {
   "id": "2026-06-16_133554",
   "src": "gallery/2026-06-16_133554.jpg",
   "thumb": "gallery/thumbs/2026-06-16_133554.jpg",
@@ -246,26 +266,6 @@
   "w": 1800,
   "h": 1013,
   "date": "2026-09-09",
-  "title": "",
-  "story": ""
- },
- {
-  "id": "undated-shared-image-7",
-  "src": "gallery/undated-shared-image-7.jpg",
-  "thumb": "gallery/thumbs/undated-shared-image-7.jpg",
-  "w": 1355,
-  "h": 1800,
-  "date": null,
-  "title": "",
-  "story": ""
- },
- {
-  "id": "undated-tmp-f53620d6-34e6-4a7c-ad51-f7f5b37a372c",
-  "src": "gallery/undated-tmp-f53620d6-34e6-4a7c-ad51-f7f5b37a372c.jpg",
-  "thumb": "gallery/thumbs/undated-tmp-f53620d6-34e6-4a7c-ad51-f7f5b37a372c.jpg",
-  "w": 915,
-  "h": 596,
-  "date": null,
   "title": "",
   "story": ""
  }

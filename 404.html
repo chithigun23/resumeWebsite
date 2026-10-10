@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en-AU" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>404 — Open circuit · Chithi Gunatilake</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#F4F5F6">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<!-- absolute paths: this page is served from whatever URL was missing -->
+<link rel="stylesheet" href="/style.css">
+
+<script>
+  (function () {
+    try {
+      var saved = localStorage.getItem("cg-theme");
+      var dark = saved ? saved === "dark"
+        : window.matchMedia("(prefers-color-scheme: dark)").matches;
+      document.documentElement.setAttribute("data-theme", dark ? "dark" : "light");
+    } catch (e) {}
+  })();
+</script>
+
+<style>
+  .nf {
+    min-height: 100vh;
+    min-height: 100svh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+    padding: 90px var(--pad) 60px;
+  }
+  .nf-stage { position: relative; z-index: 5; text-align: center; max-width: 760px; }
+
+  .nf-code {
+    font-size: clamp(110px, 26vw, 300px);
+    font-weight: 800;
+    letter-spacing: -0.06em;
+    line-height: .86;
+  }
+  .nf-code .gap { color: transparent; -webkit-text-stroke: 2px var(--ink); }
+
+  .nf-trace { width: min(560px, 90%); height: 56px; margin: 22px auto 0; color: var(--ink); overflow: visible; }
+  .nf-trace .wire { fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+  .nf-trace .dead { stroke: var(--ink-3); stroke-dasharray: 3 6; }
+  .nf-trace .pad { fill: var(--bg); stroke: currentColor; stroke-width: 1.6; }
+  .nf-trace .spark { fill: var(--volt); stroke: none; animation: spark 1.6s steps(1) infinite; }
+  @keyframes spark { 0%, 55% { opacity: 1; } 56%, 70% { opacity: 0; } 71%, 80% { opacity: 1; } 81%, 100% { opacity: 0; } }
+
+  .nf-sub { margin: 26px auto 0; max-width: 480px; color: var(--ink-2); font-size: clamp(14px, 1.6vw, 17px); line-height: 1.7; }
+  .nf-path {
+    display: inline-block; margin-top: 18px; max-width: 100%;
+    font-size: 11.5px; letter-spacing: .06em; color: var(--ink-3);
+    overflow-wrap: anywhere;
+  }
+  .nf-links { margin-top: 28px; display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+  .nf-links .chip-btn.primary { background: var(--volt); border-color: var(--volt); color: var(--volt-ink); }
+  .nf-links .chip-btn.primary:hover { background: var(--ink); border-color: var(--ink); color: var(--bg); }
+
+  @media (prefers-reduced-motion: reduce) { .nf-trace .spark { animation: none; } }
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-sun" viewBox="0 0 16 16"><circle cx="8" cy="8" r="3.1" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M8 .9v1.8M8 13.3v1.8M15.1 8h-1.8M2.7 8H.9M13 3l-1.3 1.3M4.3 11.7 3 13M13 13l-1.3-1.3M4.3 4.3 3 3" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></symbol>
+    <symbol id="i-moon" viewBox="0 0 16 16"><path d="M13.6 9.9A6 6 0 0 1 6.1 2.4a6 6 0 1 0 7.5 7.5z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></symbol>
+    <symbol id="i-back" viewBox="0 0 16 16"><path d="M10 3 5 8l5 5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  </defs>
+</svg>
+
+<div class="rail">
+  <a class="monogram" href="/" title="Back to home">CG</a>
+  <div class="rail-actions">
+    <button class="chip-btn" id="themeBtn" type="button" aria-label="Switch to dark theme">
+      <svg aria-hidden="true" id="themeIcon"><use href="#i-moon"/></svg>
+    </button>
+  </div>
+</div>
+
+<main class="nf">
+  <div class="hero-grid" aria-hidden="true"></div>
+  <div class="glass a" aria-hidden="true"></div>
+  <div class="glass b" aria-hidden="true"></div>
+  <div class="glass c" aria-hidden="true"></div>
+
+  <div class="nf-stage">
+    <p class="hero-eyebrow">Error 404 &middot; Open circuit</p>
+    <h1 class="nf-code" aria-label="404"><span aria-hidden="true">4<span class="gap">0</span>4</span></h1>
+
+    <!-- a trace that goes dead partway across -->
+    <svg class="nf-trace" viewBox="0 0 560 56" aria-hidden="true">
+      <circle class="pad" cx="12" cy="28" r="6"/>
+      <path class="wire" d="M18 28H150L170 10H230L250 28H262"/>
+      <path class="wire dead" d="M262 28H298"/>
+      <path class="spark" d="M276 20l-6 10h6l-3 8 10-12h-6l4-6z"/>
+      <path class="wire" d="M298 28H310L330 46H390L410 28H542"/>
+      <circle class="pad" cx="548" cy="28" r="6"/>
+    </svg>
+
+    <p class="nf-sub">There's no page at this address. The trace goes dead here, so either the link is broken or the page has moved.</p>
+    <code class="nf-path mono" id="path"></code>
+
+    <div class="nf-links">
+      <a class="chip-btn primary" href="/"><svg aria-hidden="true"><use href="#i-back"/></svg>Back to home</a>
+      <a class="chip-btn" href="/#projects">Projects</a>
+      <a class="chip-btn" href="/gallery">Gallery</a>
+      <a class="chip-btn" href="/#contact">Contact</a>
+    </div>
+  </div>
+</main>
+
+<script>
+(function () {
+  var root = document.documentElement;
+  var btn = document.getElementById("themeBtn");
+  var use = document.getElementById("themeIcon").querySelector("use");
+
+  /* show what was asked for; textContent so the path can't inject markup */
+  document.getElementById("path").textContent = "GET " + location.pathname;
+
+  function paint() {
+    var dark = root.getAttribute("data-theme") === "dark";
+    use.setAttribute("href", dark ? "#i-sun" : "#i-moon");
+    btn.setAttribute("aria-label", dark ? "Switch to light theme" : "Switch to dark theme");
+    var meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) { meta.setAttribute("content", dark ? "#0D0E15" : "#F4F5F6"); }
+  }
+  btn.addEventListener("click", function () {
+    var next = root.getAttribute("data-theme") === "dark" ? "light" : "dark";
+    root.setAttribute("data-theme", next);
+    try { localStorage.setItem("cg-theme", next); } catch (e) {}
+    paint();
+  });
+  paint();
+})();
+</script>
+</body>
+</html>

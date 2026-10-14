@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="en-AU" data-theme="light">
+<html lang="en-AU" data-theme="dark">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>404 — Open circuit · Chithi Gunatilake</title>
 <meta name="robots" content="noindex">
-<meta name="theme-color" content="#F4F5F6">
+<meta name="theme-color" content="#0D0E15">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -19,7 +19,7 @@
     try {
       var saved = localStorage.getItem("cg-theme");
       var dark = saved ? saved === "dark"
-        : window.matchMedia("(prefers-color-scheme: dark)").matches;
+        : true; /* dark unless the visitor chose light */
       document.documentElement.setAttribute("data-theme", dark ? "dark" : "light");
     } catch (e) {}
   })();

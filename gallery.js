@@ -147,7 +147,7 @@
 
   fetch("gallery/images.json", { cache: "no-cache" })
     .then(function (r) { if (!r.ok) { throw new Error(r.status); } return r.json(); })
-    .then(function (data) { images = Array.isArray(data) ? data : []; render(); openFromHash(); })
+    .then(function (data) { images = Array.isArray(data) ? data.slice().reverse() : []; /* newest first */ render(); openFromHash(); })
     .catch(function () { images = []; render(); });
 
   /* ---------- theme toggle ---------- */

@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow, noarchive, nosnippet, noimageindex">
+<meta name="googlebot" content="noindex, nofollow, noarchive">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GearSensor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* Layout idea: one long engineering sheet. Sticky section nav, wide figures that scroll inside their own frame, FMEA as a sortable table. */
+:root {
+  color-scheme: light;
+  --paper: #f2f5f7;
+  --card: #ffffff;
+  --ink: #13202b;
+  --muted: #566673;
+  --line: #cdd7de;
+  --accent: #0a6b8a;
+  --tint: #dcedf3;
+  --alt: #e7ecf0;
+  --pneu: #2f6db3;
+  --mech: #6b7a86;
+  --good: #1d7a4b;
+  --good-bg: #dff1e6;
+  --warn: #8f5600;
+  --warn-bg: #fdebc6;
+  --crit: #b3261e;
+  --crit-bg: #fbe3e0;
+  --display: "Barlow Condensed", "Arial Narrow", sans-serif;
+  --body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --paper: #0e161d;
+    --card: #15212a;
+    --ink: #e5ecf1;
+    --muted: #94a5b2;
+    --line: #2a3b48;
+    --accent: #4cc3e0;
+    --tint: #16323d;
+    --alt: #1c2a34;
+    --pneu: #6ea8ea;
+    --mech: #8a9ba8;
+    --good: #52c68c;
+    --good-bg: #153326;
+    --warn: #e6a64c;
+    --warn-bg: #3a2d12;
+    --crit: #ff8077;
+    --crit-bg: #3d1b19;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --paper: #0e161d;
+  --card: #15212a;
+  --ink: #e5ecf1;
+  --muted: #94a5b2;
+  --line: #2a3b48;
+  --accent: #4cc3e0;
+  --tint: #16323d;
+  --alt: #1c2a34;
+  --pneu: #6ea8ea;
+  --mech: #8a9ba8;
+  --good: #52c68c;
+  --good-bg: #153326;
+  --warn: #e6a64c;
+  --warn-bg: #3a2d12;
+  --crit: #ff8077;
+  --crit-bg: #3d1b19;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 64px; }
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--body);
+  font-size: 15px;
+  line-height: 1.55;
+}
+a { color: var(--accent); }
+a:focus-visible, button:focus-visible, th[role="button"]:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+code, .mono { font-family: var(--mono); font-size: 0.92em; }
+
+.wrap { max-width: 1120px; margin: 0 auto; padding: 0 16px; }
+header.top { padding: 36px 0 20px; border-bottom: 1px solid var(--line); }
+h1 { font-family: var(--display); font-weight: 700; font-size: 44px; line-height: 1.05; margin: 0 0 8px; letter-spacing: 0.01em; text-wrap: balance; }
+h2 { font-family: var(--display); font-weight: 700; font-size: 30px; line-height: 1.1; margin: 0 0 6px; letter-spacing: 0.01em; text-wrap: balance; }
+h3 { font-size: 16px; margin: 0 0 6px; text-wrap: balance; }
+.lede { max-width: 68ch; color: var(--muted); margin: 0 0 16px; }
+.lede.ink { color: var(--ink); }
+
+nav.sections { position: sticky; top: 0; z-index: 5; background: var(--paper); border-bottom: 1px solid var(--line); }
+nav.sections .wrap { display: flex; gap: 20px; padding-top: 10px; padding-bottom: 10px; overflow-x: auto; }
+nav.sections a { text-decoration: none; color: var(--muted); font-weight: 500; white-space: nowrap; }
+nav.sections a:hover { color: var(--ink); }
+
+.status { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 0; padding: 0; list-style: none; }
+.status li { border: 1px solid var(--line); background: var(--card); border-radius: 6px; padding: 6px 10px; font-size: 13px; }
+.status li b { font-weight: 600; }
+.status .ok { border-left: 4px solid var(--good); }
+.status .todo { border-left: 4px solid var(--warn); }
+
+section { padding: 36px 0 8px; }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 16px; }
+.grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+@media (max-width: 760px) { .grid2 { grid-template-columns: 1fr; } h1 { font-size: 36px; } }
+
+figure { margin: 16px 0; }
+.fig-frame { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 12px; overflow-x: auto; }
+.fig-frame svg { display: block; width: 100%; min-width: 820px; height: auto; }
+figcaption { color: var(--muted); font-size: 13px; margin-top: 8px; max-width: 80ch; }
+
+/* diagram parts, styled from the tokens */
+svg text { font-family: var(--body); fill: var(--ink); font-size: 12.5px; }
+svg .tb { font-weight: 600; font-size: 13.5px; }
+svg .ts { font-size: 11.5px; fill: var(--muted); }
+svg .tm { font-family: var(--mono); font-size: 11.5px; }
+svg .tz { font-size: 11px; fill: var(--muted); letter-spacing: 0.04em; }
+svg .node { fill: var(--card); stroke: var(--ink); stroke-width: 1.25; }
+svg .node-ecu { fill: var(--alt); stroke: var(--ink); stroke-width: 1.25; }
+svg .node-focus { fill: var(--tint); stroke: var(--accent); stroke-width: 2; }
+svg .zone { fill: none; stroke: var(--line); stroke-width: 1.25; stroke-dasharray: 5 4; }
+svg .zone-fill { fill: var(--alt); stroke: var(--line); stroke-width: 1; opacity: 0.55; }
+svg .w-sig { fill: none; stroke: var(--ink); stroke-width: 1.5; }
+svg .w-can { fill: none; stroke: var(--ink); stroke-width: 1.5; stroke-dasharray: 6 4; }
+svg .w-pn { fill: none; stroke: var(--pneu); stroke-width: 4; }
+svg .w-mech { fill: none; stroke: var(--mech); stroke-width: 4; }
+svg .mk-ink { fill: var(--ink); }
+svg .mk-pneu { fill: var(--pneu); }
+svg .mk-mech { fill: var(--mech); }
+svg .mk-accent { fill: var(--accent); }
+svg .mk-crit { fill: var(--crit); }
+svg .st-ok { fill: var(--card); stroke: var(--ink); stroke-width: 1.5; }
+svg .st-main { fill: var(--tint); stroke: var(--accent); stroke-width: 2; }
+svg .st-fault { fill: var(--crit-bg); stroke: var(--crit); stroke-width: 2; }
+svg .t-fault { fill: var(--crit); }
+svg .w-fault { fill: none; stroke: var(--crit); stroke-width: 1.5; }
+svg .w-accent { fill: none; stroke: var(--accent); stroke-width: 1.75; }
+svg .seg-fault { fill: var(--crit-bg); stroke: var(--crit); stroke-width: 1; }
+svg .seg-move { fill: var(--tint); stroke: var(--accent); stroke-width: 1; }
+svg .seg-rest { fill: var(--good-bg); stroke: var(--good); stroke-width: 1; }
+svg .axis { stroke: var(--muted); stroke-width: 1.25; }
+svg .tick { fill: var(--accent); stroke: var(--card); stroke-width: 2; }
+svg .tick-bad { fill: var(--card); stroke: var(--crit); stroke-width: 2.5; }
+svg .bench { fill: var(--warn); }
+
+.legend { display: flex; flex-wrap: wrap; gap: 8px 20px; margin: 8px 0 0; padding: 0; list-style: none; font-size: 13px; color: var(--muted); }
+.legend li { display: flex; align-items: center; gap: 8px; }
+.legend i { display: inline-block; width: 34px; height: 0; border-top: 2px solid var(--ink); }
+.legend i.can { border-top-style: dashed; }
+.legend i.pn { border-top: 4px solid var(--pneu); }
+.legend i.mech { border-top: 4px solid var(--mech); }
+
+.table-frame { background: var(--card); border: 1px solid var(--line); border-radius: 8px; overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 13.5px; }
+th, td { text-align: left; vertical-align: top; padding: 8px 10px; border-bottom: 1px solid var(--line); }
+th { font-weight: 600; background: var(--alt); position: sticky; top: 0; white-space: nowrap; }
+tr:last-child td { border-bottom: 0; }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+.tag { display: inline-block; font-size: 11.5px; font-weight: 500; padding: 1px 7px; border-radius: 999px; border: 1px solid var(--line); background: var(--alt); color: var(--muted); white-space: nowrap; }
+.tag.guess { background: var(--warn-bg); color: var(--warn); border-color: transparent; }
+.tag.v1 { background: var(--good-bg); color: var(--good); border-color: transparent; }
+.tag.ph { background: var(--crit-bg); color: var(--crit); border-color: transparent; }
+
+ol.steps { margin: 8px 0 0; padding-left: 22px; max-width: 80ch; }
+ol.steps li { margin: 4px 0; }
+ul.plain { margin: 6px 0 0; padding-left: 20px; max-width: 80ch; }
+ul.plain li { margin: 4px 0; }
+
+.trust { display: flex; flex-wrap: wrap; gap: 8px; align-items: stretch; margin: 10px 0 0; }
+.trust div { flex: 1 1 200px; border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; background: var(--card); }
+.trust div b { display: block; margin-bottom: 2px; }
+.trust div.first { border-left: 4px solid var(--good); }
+.trust div.second { border-left: 4px solid var(--warn); }
+.trust div.third { border-left: 4px solid var(--crit); }
+
+/* FMEA */
+.fmea-tools { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; align-items: center; }
+.chip { font: inherit; font-size: 13px; padding: 5px 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--card); color: var(--ink); cursor: pointer; }
+.chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--paper); }
+.fmea-sum { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 4px; }
+.fmea-sum div { flex: 1 1 180px; border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; background: var(--card); }
+.fmea-sum b { font-size: 24px; font-family: var(--display); display: block; line-height: 1.1; }
+.fmea-sum span { font-size: 13px; color: var(--muted); }
+#fmea-table { min-width: 1240px; }
+#fmea-table th[role="button"] { cursor: pointer; }
+.rpn { display: inline-block; min-width: 44px; text-align: center; padding: 2px 8px; border-radius: 6px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.rpn.crit { background: var(--crit-bg); color: var(--crit); }
+.rpn.high { background: var(--warn-bg); color: var(--warn); }
+.rpn.mod { background: var(--alt); color: var(--muted); }
+td.fid { font-family: var(--mono); font-size: 12.5px; white-space: nowrap; }
+td .mode { font-weight: 600; display: block; }
+.note { font-size: 13px; color: var(--muted); max-width: 90ch; margin: 8px 0 0; }
+.callout { border: 1px solid var(--line); border-left: 4px solid var(--warn); background: var(--card); border-radius: 8px; padding: 12px 14px; max-width: 90ch; }
+footer { padding: 28px 0 48px; color: var(--muted); font-size: 13px; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <h1>Gear position system</h1>
+    <p class="lede ink">An Arduino UNO R4 WiFi reads the shift actuator sensor and the neutral switch, works out which gear the car is in, and sends that gear to the MoTeC M1 GPRP as an analog voltage. This page covers the physical layout, the firmware structure and a draft FMEA.</p>
+    <ul class="status">
+      <li class="ok"><b>Firmware v2</b> compiles for the UNO R4 WiFi, with and without CAN</li>
+      <li class="ok"><b>22 desktop test groups</b> pass (state machine, CAN decode, estimate, LED display)</li>
+      <li class="ok"><b>Uploaded to the bench board</b> with CAN off, serial logging on and the LED gear display</li>
+      <li class="todo"><b>Not run on the car.</b> Timing values are starting guesses</li>
+      <li class="todo"><b>CAN layout and gear estimate</b> are placeholders and switched off</li>
+      <li class="todo"><b>FMEA scores</b> are draft estimates for the team to review</li>
+    </ul>
+  </div>
+</header>
+
+<nav class="sections" aria-label="Sections">
+  <div class="wrap">
+    <a href="#physical">Physical architecture</a>
+    <a href="#code">Code architecture</a>
+    <a href="#fmea">FMEA</a>
+    <a href="#open">Open items</a>
+  </div>
+</nav>
+
+<main class="wrap">
+
+<!-- ============================ PHYSICAL ============================ -->
+<section id="physical">
+  <h2>Physical architecture</h2>
+  <p class="lede">The M1 drives the actuator and decides when a shift ends. The Arduino sits beside it as the gear position sensor: it watches the actuator move and reports the new gear, which closes the loop.</p>
+
+  <figure>
+    <div class="fig-frame">
+      <svg viewBox="0 0 1000 520" role="img" aria-label="Block diagram. Paddles and speed and clutch sensors feed the M1. The M1 drives the actuator solenoids from a CO2 supply. A position sensor and neutral switch feed the Arduino, which sends a gear voltage back to the M1. The M1 sends speed and clutch data to the Arduino over CAN.">
+        <defs>
+          <marker id="p-sig" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0L10 5L0 10z" class="mk-ink"/></marker>
+          <marker id="p-pn" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L10 5L0 10z" class="mk-pneu"/></marker>
+          <marker id="p-mech" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L10 5L0 10z" class="mk-mech"/></marker>
+        </defs>
+
+        <!-- driver side inputs to the M1 -->
+        <rect class="node" x="520" y="24" width="160" height="56" rx="8"/>
+        <text class="tb" x="600" y="49" text-anchor="middle">Paddles</text>
+        <text class="ts" x="600" y="67" text-anchor="middle">up / down micro switches</text>
+        <rect class="node" x="720" y="24" width="240" height="56" rx="8"/>
+        <text class="tb" x="840" y="49" text-anchor="middle">Engine speed, wheel speed</text>
+        <text class="ts" x="840" y="67" text-anchor="middle">clutch position sensors</text>
+        <path class="w-sig" d="M600 80 L600 138" marker-end="url(#p-sig)"/>
+        <text class="ts" x="608" y="114">up / down request</text>
+        <path class="w-sig" d="M840 80 L840 138" marker-end="url(#p-sig)"/>
+        <text class="ts" x="848" y="114">speed, clutch</text>
+
+        <!-- M1 -->
+        <rect class="node-ecu" x="520" y="140" width="360" height="160" rx="8"/>
+        <text class="tb" x="700" y="166" text-anchor="middle">MoTeC M1 GPRP</text>
+        <text class="ts" x="700" y="184" text-anchor="middle">paddle shift and engine control</text>
+        <text class="ts" x="540" y="216">inputs: paddles, speeds, clutch,</text>
+        <text class="ts" x="540" y="232">gear position (analog)</text>
+        <text class="ts" x="540" y="256">outputs: up and down solenoids,</text>
+        <text class="ts" x="540" y="272">CAN (engine, wheel, clutch)</text>
+
+        <!-- Arduino -->
+        <rect class="node-focus" x="40" y="140" width="260" height="160" rx="8"/>
+        <text class="tb" x="170" y="166" text-anchor="middle">Arduino UNO R4 WiFi</text>
+        <text class="ts" x="60" y="196"><tspan class="tm">A2</tspan>  LPS in (analog)</text>
+        <text class="ts" x="60" y="214"><tspan class="tm">D2</tspan>  neutral switch in (pull-up)</text>
+        <text class="ts" x="60" y="232"><tspan class="tm">A0</tspan>  DAC out (12 bit)</text>
+        <text class="ts" x="60" y="250">CAN receive via transceiver (TBD)</text>
+        <text class="ts" x="60" y="268">12 x 8 LED matrix shows the gear</text>
+        <text class="ts" x="60" y="286">runs the gear state machine</text>
+
+        <!-- CAN, M1 to Arduino -->
+        <path class="w-can" d="M520 190 L304 190" marker-end="url(#p-sig)"/>
+        <text class="ts" x="410" y="180" text-anchor="middle">CAN, layout TBD</text>
+        <text class="ts" x="410" y="206" text-anchor="middle">engine, wheel, clutch</text>
+        <!-- gear voltage, Arduino to M1 -->
+        <path class="w-sig" d="M300 250 L516 250" marker-end="url(#p-sig)"/>
+        <text class="ts" x="410" y="240" text-anchor="middle">gear voltage</text>
+        <text class="ts" x="410" y="266" text-anchor="middle">0.5 to 4.1 V, 0.0 V = invalid</text>
+
+        <!-- sensors into the Arduino -->
+        <rect class="node" x="40" y="350" width="120" height="52" rx="8"/>
+        <text class="tb" x="100" y="373" text-anchor="middle">LPS</text>
+        <text class="ts" x="100" y="391" text-anchor="middle">analog, shift travel</text>
+        <rect class="node" x="180" y="350" width="120" height="52" rx="8"/>
+        <text class="tb" x="240" y="373" text-anchor="middle">Neutral switch</text>
+        <text class="ts" x="240" y="391" text-anchor="middle">on gearbox, digital</text>
+        <path class="w-sig" d="M100 350 L100 302" marker-end="url(#p-sig)"/>
+        <text class="tm" x="108" y="332">A2</text>
+        <path class="w-sig" d="M240 350 L240 302" marker-end="url(#p-sig)"/>
+        <text class="tm" x="248" y="332">D2</text>
+
+        <!-- M1 to actuator -->
+        <path class="w-sig" d="M700 300 L700 428" marker-end="url(#p-sig)"/>
+        <text class="ts" x="712" y="360">up and down solenoid drive, 12 V</text>
+
+        <!-- pneumatic and mechanical chain -->
+        <text class="tz" x="20" y="418">PNEUMATICS AND MECHANICS</text>
+        <rect class="node" x="20" y="430" width="160" height="70" rx="8"/>
+        <text class="tb" x="100" y="455" text-anchor="middle">SodaStream CO2</text>
+        <text class="ts" x="100" y="473" text-anchor="middle">600 to 800 kPa</text>
+        <rect class="node" x="220" y="430" width="160" height="70" rx="8"/>
+        <text class="tb" x="300" y="455" text-anchor="middle">HPA regulator</text>
+        <text class="ts" x="300" y="473" text-anchor="middle">20 to 200 psi, adjustable</text>
+        <rect class="node" x="420" y="430" width="160" height="70" rx="8"/>
+        <text class="tb" x="500" y="455" text-anchor="middle">-4AN PTFE hose</text>
+        <text class="ts" x="500" y="473" text-anchor="middle">braided stainless</text>
+        <rect class="node" x="620" y="430" width="160" height="70" rx="8"/>
+        <text class="tb" x="700" y="455" text-anchor="middle">MoTeC actuator</text>
+        <text class="ts" x="700" y="473" text-anchor="middle">2 solenoids, 12 V</text>
+        <text class="ts" x="700" y="490" text-anchor="middle">LPS reads its travel</text>
+        <rect class="node" x="820" y="430" width="160" height="70" rx="8"/>
+        <text class="tb" x="900" y="455" text-anchor="middle">Gearbox selector</text>
+        <text class="ts" x="900" y="473" text-anchor="middle">1  N  2  3  4  5  6</text>
+        <text class="ts" x="900" y="490" text-anchor="middle">neutral switch fitted</text>
+        <path class="w-pn" d="M182 465 L214 465" marker-end="url(#p-pn)"/>
+        <path class="w-pn" d="M382 465 L414 465" marker-end="url(#p-pn)"/>
+        <path class="w-pn" d="M582 465 L614 465" marker-end="url(#p-pn)"/>
+        <path class="w-mech" d="M782 465 L814 465" marker-end="url(#p-mech)"/>
+      </svg>
+    </div>
+    <figcaption>The Arduino sits in a closed loop with the M1: the M1 fires a solenoid, the selector moves, the LPS sees it, and the Arduino reports the new gear back as a voltage. The M1 uses that change to end the shift.</figcaption>
+    <ul class="legend" aria-label="Legend">
+      <li><i></i> electrical signal</li>
+      <li><i class="can"></i> CAN (layout still to be defined)</li>
+      <li><i class="pn"></i> CO2 supply</li>
+      <li><i class="mech"></i> mechanical link</li>
+    </ul>
+  </figure>
+
+  <div class="grid2">
+    <div class="card">
+      <h3>One shift, step by step</h3>
+      <ol class="steps">
+        <li>The driver pulls a paddle. The M1 energises the up or down solenoid. The manual suggests a shift time near 150 ms.</li>
+        <li>The actuator moves the selector and the LPS leaves its 1.5 to 3.0 V rest band.</li>
+        <li>After the LPS has stayed past a threshold for 15 ms, the Arduino counts one shift and steps along 1, N, 2, 3, 4, 5, 6. The output changes to the new gear voltage.</li>
+        <li>The M1 sees the gear change and ends the shift.</li>
+        <li>The Arduino waits for the LPS to return to rest and for 100 ms to pass, compares the neutral switch with the expected gear, then accepts the next shift.</li>
+      </ol>
+      <p class="note">From the LPS crossing a threshold to the output changing takes about 15 to 20 ms. That has to stay well inside the M1 shift time.</p>
+    </div>
+    <div class="card">
+      <h3>What the M1 expects</h3>
+      <ul class="plain">
+        <li>The M1 reads the gear position sensor at high speed and ends a shift as soon as the gear changes.</li>
+        <li>Each gear has a calibrated position and tolerance in the M1. The Arduino voltage table has to match what the M1 learned.</li>
+        <li>A voltage outside the M1 diagnostic limits for longer than its diagnostic delay counts as a sensor fault, and the M1 falls back to its own gear estimate from wheel and engine speed.</li>
+        <li>The M1 has no support for half shifts, such as finding neutral on a motorbike gearbox. The driver handles N to 1 with the clutch.</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3 style="margin-top:24px">Signals</h3>
+  <div class="table-frame">
+    <table>
+      <thead><tr><th>Signal</th><th>From</th><th>To</th><th>Type</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td>Up and down request</td><td>Paddle micro switches</td><td>M1</td><td>Digital</td><td>The M1 accepts switched paddle inputs.</td></tr>
+        <tr><td>Solenoid drive</td><td>M1</td><td>Actuator, up and down</td><td>12 V on or off</td><td>The M1 does not control stroke, so the mechanical limits matter.</td></tr>
+        <tr><td>LPS</td><td>Linear position sensor</td><td>Arduino <span class="mono">A2</span></td><td>Analog, 0 to 5 V</td><td>Upshift at or above 3.0 V, downshift at or below 1.5 V. Bench reading is 1.0 to 1.25 V and drifts. Mount to be confirmed.</td></tr>
+        <tr><td>Neutral switch</td><td>Gearbox</td><td>Arduino <span class="mono">D2</span></td><td>Digital, pull-up</td><td>LOW means neutral. This is the trusted input.</td></tr>
+        <tr><td>Gear voltage</td><td>Arduino <span class="mono">A0</span> DAC</td><td>M1 gear position input</td><td>Analog, 12 bit</td><td>0.5 V for N up to 4.1 V for 6th. 0.0 V means gear not known.</td></tr>
+        <tr><td>Gear display</td><td>Arduino</td><td>On-board 12 x 8 LED matrix</td><td>Matrix driver</td><td>A big digit for 1 to 6, N for neutral, a cross when the gear is not known or in FAULT. It shows the tracked gear, which can differ from what the M1 uses in fallback.</td></tr>
+        <tr><td>Engine speed, wheel speed, clutch position</td><td>M1</td><td>Arduino</td><td>CAN</td><td>Needs a CAN transceiver, the bit rate and the frame layout. Used only for the gear estimate.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ============================ CODE ============================ -->
+<section id="code">
+  <h2>Code architecture</h2>
+  <p class="lede">The Arduino sketch only reads pins, writes the DAC and draws the LED matrix. All decisions live in three plain C++ headers with no Arduino dependency, so a PC can test them.</p>
+
+  <figure>
+    <div class="fig-frame">
+      <svg viewBox="0 0 1000 400" role="img" aria-label="Data flow. The sketch reads the LPS, the neutral switch and CAN data, passes them as one inputs record to the state machine step function, which sets the output voltage that the sketch writes to the DAC and the symbol the sketch draws on the LED matrix.">
+        <defs>
+          <marker id="c-sig" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0L10 5L0 10z" class="mk-ink"/></marker>
+        </defs>
+
+        <rect class="zone" x="16" y="34" width="280" height="350" rx="10"/>
+        <text class="tz" x="30" y="26">ARDUINO SKETCH  GPS_code_v2_fsm.ino</text>
+        <rect class="zone-fill" x="316" y="34" width="668" height="350" rx="10"/>
+        <text class="tz" x="330" y="26">PURE LOGIC  gps_fsm.h, gps_can.h, gps_display.h, tested on a PC</text>
+
+        <rect class="node" x="36" y="56" width="240" height="64" rx="8"/>
+        <text class="tb" x="156" y="82" text-anchor="middle">analogRead A2</text>
+        <text class="ts" x="156" y="102" text-anchor="middle">lps_v in volts</text>
+        <rect class="node" x="36" y="136" width="240" height="64" rx="8"/>
+        <text class="tb" x="156" y="162" text-anchor="middle">digitalRead D2</text>
+        <text class="ts" x="156" y="182" text-anchor="middle">neutral = pin is LOW</text>
+        <rect class="node" x="36" y="216" width="240" height="84" rx="8"/>
+        <text class="tb" x="156" y="240" text-anchor="middle">poll_can()</text>
+        <text class="ts" x="156" y="259" text-anchor="middle">decode_signal, then</text>
+        <text class="ts" x="156" y="275" text-anchor="middle">estimate_gear_from_signals</text>
+        <text class="ts" x="156" y="291" text-anchor="middle">-1 when unusable or off</text>
+        <rect class="node" x="36" y="308" width="240" height="68" rx="8"/>
+        <text class="tb" x="156" y="329" text-anchor="middle">analogWrite A0</text>
+        <text class="ts" x="156" y="347" text-anchor="middle">12 bit DAC to the M1</text>
+        <text class="ts" x="156" y="365" text-anchor="middle">matrix.renderBitmap: LED gear</text>
+
+        <!-- bus into Inputs -->
+        <path class="w-sig" d="M276 88 L306 88"/>
+        <path class="w-sig" d="M276 168 L306 168"/>
+        <path class="w-sig" d="M276 258 L306 258"/>
+        <path class="w-sig" d="M306 88 L306 258"/>
+        <path class="w-sig" d="M306 172 L346 172" marker-end="url(#c-sig)"/>
+
+        <rect class="node" x="348" y="116" width="150" height="112" rx="8"/>
+        <text class="tb" x="423" y="140" text-anchor="middle">gps::Inputs</text>
+        <text class="tm" x="364" y="164">lps_v</text>
+        <text class="tm" x="364" y="182">neutral</text>
+        <text class="tm" x="364" y="200">estimated_gear</text>
+        <text class="tm" x="364" y="218">now_ms</text>
+
+        <path class="w-sig" d="M498 172 L548 172" marker-end="url(#c-sig)"/>
+        <text class="ts" x="523" y="162" text-anchor="middle">5 ms</text>
+
+        <rect class="node-focus" x="550" y="60" width="270" height="226" rx="8"/>
+        <text class="tb" x="685" y="84" text-anchor="middle">gps::step(fsm, inputs)</text>
+        <text class="ts" x="568" y="112">1  debounce neutral switch, 15 ms</text>
+        <text class="ts" x="568" y="136">2  track how long the estimate agrees</text>
+        <text class="ts" x="568" y="160">3  LPS range check, 0.2 to 4.8 V</text>
+        <text class="ts" x="568" y="184">4  run the current mode:</text>
+        <text class="tm" x="586" y="204">UNKNOWN</text>
+        <text class="tm" x="586" y="222">ARMED</text>
+        <text class="tm" x="586" y="240">WAIT_RELEASE</text>
+        <text class="tm" x="586" y="258">FAULT</text>
+
+        <path class="w-sig" d="M820 172 L850 172" marker-end="url(#c-sig)"/>
+        <rect class="node" x="852" y="100" width="126" height="150" rx="8"/>
+        <text class="tb" x="915" y="124" text-anchor="middle">output</text>
+        <text class="tm" x="915" y="150" text-anchor="middle">output_voltage()</text>
+        <text class="tm" x="915" y="170" text-anchor="middle">dac_counts()</text>
+        <text class="tm" x="915" y="190" text-anchor="middle">display_symbol()</text>
+        <text class="ts" x="915" y="214" text-anchor="middle">gear table, 0.0 V</text>
+        <text class="ts" x="915" y="232" text-anchor="middle">digit, N or cross</text>
+
+        <path class="w-sig" d="M915 250 L915 344 L278 344" marker-end="url(#c-sig)"/>
+        <text class="ts" x="600" y="336" text-anchor="middle">DAC counts and LED symbol, each written only when they change</text>
+      </svg>
+    </div>
+    <figcaption>Data flows left to right. The sketch converts raw pin readings into one inputs record every 5 ms, the state machine returns a gear voltage, and the sketch writes it to the DAC and draws the matching symbol on the LED matrix.</figcaption>
+  </figure>
+
+  <h3>Who is trusted for what</h3>
+  <div class="trust">
+    <div class="first"><b>Neutral switch</b>Accurate for whether the car is in neutral. It sets the gear to N and overrides the tracked gear in every running mode.</div>
+    <div class="first"><b>LPS</b>Reliable for when a shift happened and whether it completed. It drives every shift event. The furthest voltage of each shift is logged, so a complete shift can be defined from data.</div>
+    <div class="second"><b>Gear estimate</b>From CAN engine speed, wheel speed and clutch. A cross-check only, off until calibrated. If the LPS shift count and the neutral switch disagree, the gear becomes not known.</div>
+  </div>
+
+  <figure>
+    <div class="fig-frame">
+      <svg viewBox="0 0 1000 380" role="img" aria-label="State machine with four states. Unknown moves to Armed when neutral is confirmed. Armed moves to Wait release on a shift event and back when the sensor rests. A neutral mismatch returns to Unknown. A bad sensor range or a release timeout moves to Fault, and neutral recovers it.">
+        <defs>
+          <marker id="s-ink" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0L10 5L0 10z" class="mk-ink"/></marker>
+          <marker id="s-crit" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0L10 5L0 10z" class="mk-crit"/></marker>
+          <marker id="s-acc" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0L10 5L0 10z" class="mk-accent"/></marker>
+        </defs>
+
+        <circle cx="12" cy="125" r="5" class="mk-ink"/>
+        <path class="w-sig" d="M17 125 L48 125" marker-end="url(#s-ink)"/>
+        <text class="ts" x="6" y="148">power on</text>
+
+        <rect class="st-ok" x="50" y="90" width="170" height="70" rx="10"/>
+        <text class="tb" x="135" y="120" text-anchor="middle">UNKNOWN</text>
+        <text class="ts" x="135" y="140" text-anchor="middle">output 0.0 V</text>
+        <rect class="st-main" x="410" y="90" width="170" height="70" rx="10"/>
+        <text class="tb" x="495" y="120" text-anchor="middle">ARMED</text>
+        <text class="ts" x="495" y="140" text-anchor="middle">output = tracked gear</text>
+        <rect class="st-ok" x="780" y="90" width="170" height="70" rx="10"/>
+        <text class="tb" x="865" y="120" text-anchor="middle">WAIT_RELEASE</text>
+        <text class="ts" x="865" y="140" text-anchor="middle">output = new gear</text>
+        <rect class="st-fault" x="410" y="290" width="170" height="70" rx="10"/>
+        <text class="tb t-fault" x="495" y="320" text-anchor="middle">FAULT</text>
+        <text class="ts" x="495" y="340" text-anchor="middle">output 0.0 V</text>
+
+        <!-- UNKNOWN to ARMED -->
+        <path class="w-sig" d="M220 125 L406 125" marker-end="url(#s-ink)"/>
+        <text class="ts" x="313" y="92" text-anchor="middle">neutral switch closed,</text>
+        <text class="ts" x="313" y="108" text-anchor="middle">or estimate agrees 50 ms</text>
+        <!-- ARMED to WAIT -->
+        <path class="w-accent" d="M580 108 L776 108" marker-end="url(#s-acc)"/>
+        <text class="ts" x="678" y="76" text-anchor="middle">LPS at or above 3.0 V</text>
+        <text class="ts" x="678" y="92" text-anchor="middle">or at or below 1.5 V for 15 ms</text>
+        <!-- WAIT to ARMED -->
+        <path class="w-sig" d="M780 144 L584 144" marker-end="url(#s-ink)"/>
+        <text class="ts" x="682" y="178" text-anchor="middle">LPS back in 1.5 to 3.0 V for 15 ms,</text>
+        <text class="ts" x="682" y="194" text-anchor="middle">and 100 ms since the shift</text>
+        <!-- WAIT to UNKNOWN over the top -->
+        <path class="w-sig" d="M865 90 L865 36 L135 36 L135 86" marker-end="url(#s-ink)"/>
+        <text class="ts" x="500" y="28" text-anchor="middle">shift predicted N but the neutral switch says in gear: the two disagree</text>
+        <!-- ARMED to FAULT -->
+        <path class="w-fault" d="M470 160 L470 286" marker-end="url(#s-crit)"/>
+        <text class="ts" x="460" y="212" text-anchor="end">LPS outside 0.2 to 4.8 V</text>
+        <text class="ts" x="460" y="228" text-anchor="end">for 15 ms (any mode)</text>
+        <!-- FAULT to ARMED -->
+        <path class="w-sig" d="M520 290 L520 164" marker-end="url(#s-ink)"/>
+        <text class="ts" x="532" y="212">LPS valid again</text>
+        <text class="ts" x="532" y="228">and neutral switch closed</text>
+        <!-- WAIT to FAULT -->
+        <path class="w-fault" d="M865 160 L865 325 L584 325" marker-end="url(#s-crit)"/>
+        <text class="ts" x="860" y="260" text-anchor="end">LPS outside range, or no</text>
+        <text class="ts" x="860" y="276" text-anchor="end">return to rest within 2 s</text>
+      </svg>
+    </div>
+    <figcaption>While ARMED, the neutral switch forces the gear to N whenever it is closed, and a sustained estimate replaces a tracked gear that disagrees with it. Shifts follow the physical order 1, N, 2, 3, 4, 5, 6 and stop at 1 and 6.</figcaption>
+  </figure>
+
+  <h3>Voltages</h3>
+  <figure>
+    <div class="fig-frame">
+      <svg viewBox="0 0 1000 250" role="img" aria-label="Two scales from 0 to 5 volts. The output scale marks the gear voltages from 0.5 volts for neutral to 4.1 volts for sixth, with 0.0 volts as invalid. The input scale shows LPS fault zones below 0.2 and above 4.8, a downshift zone to 1.5, a rest zone from 1.5 to 3.0, and an upshift zone above 3.0. The bench reading of about 1.0 volt sits in the downshift zone.">
+        <text class="tz" x="50" y="22">OUTPUT TO THE M1  (A0)</text>
+        <line class="axis" x1="50" y1="64" x2="950" y2="64"/>
+        <circle class="tick-bad" cx="50" cy="64" r="7"/>
+        <text class="ts" x="50" y="46" text-anchor="middle">invalid</text>
+        <text class="tm" x="50" y="92" text-anchor="middle">0.0</text>
+        <circle class="tick" cx="140" cy="64" r="7"/><text class="tb" x="140" y="46" text-anchor="middle">N</text><text class="tm" x="140" y="92" text-anchor="middle">0.5</text>
+        <circle class="tick" cx="248" cy="64" r="7"/><text class="tb" x="248" y="46" text-anchor="middle">1</text><text class="tm" x="248" y="92" text-anchor="middle">1.1</text>
+        <circle class="tick" cx="356" cy="64" r="7"/><text class="tb" x="356" y="46" text-anchor="middle">2</text><text class="tm" x="356" y="92" text-anchor="middle">1.7</text>
+        <circle class="tick" cx="464" cy="64" r="7"/><text class="tb" x="464" y="46" text-anchor="middle">3</text><text class="tm" x="464" y="92" text-anchor="middle">2.3</text>
+        <circle class="tick" cx="572" cy="64" r="7"/><text class="tb" x="572" y="46" text-anchor="middle">4</text><text class="tm" x="572" y="92" text-anchor="middle">2.9</text>
+        <circle class="tick" cx="680" cy="64" r="7"/><text class="tb" x="680" y="46" text-anchor="middle">5</text><text class="tm" x="680" y="92" text-anchor="middle">3.5</text>
+        <circle class="tick" cx="788" cy="64" r="7"/><text class="tb" x="788" y="46" text-anchor="middle">6</text><text class="tm" x="788" y="92" text-anchor="middle">4.1</text>
+        <text class="ts" x="950" y="92" text-anchor="end">volts</text>
+
+        <text class="tz" x="50" y="136">INPUT FROM THE LPS  (A2)</text>
+        <rect class="seg-fault" x="50" y="156" width="36" height="30"/>
+        <rect class="seg-move" x="86" y="156" width="234" height="30"/>
+        <rect class="seg-rest" x="320" y="156" width="270" height="30"/>
+        <rect class="seg-move" x="590" y="156" width="324" height="30"/>
+        <rect class="seg-fault" x="914" y="156" width="36" height="30"/>
+        <text class="ts" x="68" y="150" text-anchor="middle">fault</text>
+        <text class="ts" x="932" y="150" text-anchor="middle">fault</text>
+        <text class="tb" x="203" y="176" text-anchor="middle">downshift</text>
+        <text class="tb" x="455" y="176" text-anchor="middle">rest</text>
+        <text class="tb" x="752" y="176" text-anchor="middle">upshift</text>
+        <text class="tm" x="50" y="206" text-anchor="middle">0</text>
+        <text class="tm" x="86" y="206" text-anchor="middle">0.2</text>
+        <text class="tm" x="320" y="206" text-anchor="middle">1.5</text>
+        <text class="tm" x="590" y="206" text-anchor="middle">3.0</text>
+        <text class="tm" x="914" y="206" text-anchor="middle">4.8</text>
+        <text class="tm" x="950" y="206" text-anchor="middle">5</text>
+        <polygon class="bench" points="230,188 223,200 237,200"/>
+        <text class="ts" x="230" y="234" text-anchor="middle">bench reading, about 1.0 V</text>
+      </svg>
+    </div>
+    <figcaption>The bench reading of 1.0 to 1.25 V falls in the downshift zone, so with the current wiring the LPS looks like a held downshift. It also drifts, which points to a floating input. The 0.2 and 4.8 V range limits are guesses.</figcaption>
+  </figure>
+
+  <div class="grid2">
+    <div class="card">
+      <h3>Files</h3>
+      <div class="table-frame" style="border:0">
+        <table>
+          <tbody>
+            <tr><td class="mono">GPS_code_v2_fsm.ino</td><td>Pins, DAC write, LED matrix draw, CAN polling. No decisions.</td></tr>
+            <tr><td class="mono">gps_fsm.h</td><td>Calibration, state machine, output voltage, gear estimate.</td></tr>
+            <tr><td class="mono">gps_can.h</td><td>Decodes one signal from a CAN frame.</td></tr>
+            <tr><td class="mono">gps_display.h</td><td>Picks the symbol from the state and fills the 12 x 8 frame.</td></tr>
+            <tr><td class="mono">test/test_fsm.cpp</td><td>22 test groups, built with g++ on a PC.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Builds</h3>
+      <ul class="plain">
+        <li>Default build, on the board now: 56 KB of 256 KB flash, 21% RAM.</li>
+        <li>CAN build, with <code>GPS_CAN_ENABLED=1</code>: 60 KB, 24% RAM. Uses the Arduino_CAN library that ships with the R4 core.</li>
+        <li><code>DEBUG</code> is on. It prints on state changes and once a second, including the furthest LPS voltage of the last shift. Set it to false for the car.</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3 style="margin-top:24px">Tunables</h3>
+  <div class="table-frame">
+    <table>
+      <thead><tr><th>Name</th><th>Value</th><th>Origin</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">GEAR_VOLTAGE</td><td class="mono">0.5, 1.1, 1.7, 2.3, 2.9, 3.5, 4.1</td><td><span class="tag v1">from v1</span></td><td>Output voltage for N, 1 to 6. Marked "need to update" in v1.</td></tr>
+        <tr><td class="mono">UPSHIFT_V, DOWNSHIFT_V</td><td class="mono">3.0, 1.5</td><td><span class="tag v1">from v1</span></td><td>LPS thresholds for a shift event. Also the edges of the rest band.</td></tr>
+        <tr><td class="mono">GEAR_RATIO, EGR_TOL</td><td class="mono">37/13 ... 26/24, 0.05</td><td><span class="tag v1">from v1</span></td><td>Gearbox ratios for the estimate.</td></tr>
+        <tr><td class="mono">SAMPLE_PERIOD_MS</td><td class="mono">5</td><td><span class="tag guess">guess</span></td><td>Time between samples.</td></tr>
+        <tr><td class="mono">NS_DEBOUNCE_SAMPLES</td><td class="mono">3 (15 ms)</td><td><span class="tag guess">guess</span></td><td>Short, because the switch is trusted.</td></tr>
+        <tr><td class="mono">LPS_DEBOUNCE_SAMPLES</td><td class="mono">3 (15 ms)</td><td><span class="tag guess">guess</span></td><td>Same as the neutral switch, since the LPS is reliable for shifts. Raise it if the signal is noisy.</td></tr>
+        <tr><td class="mono">SETTLE_MS</td><td class="mono">100</td><td><span class="tag guess">guess</span></td><td>Wait after a shift before checking the neutral switch.</td></tr>
+        <tr><td class="mono">RELEASE_TIMEOUT_MS</td><td class="mono">2000</td><td><span class="tag guess">guess</span></td><td>Longest the LPS may stay out of rest after a shift.</td></tr>
+        <tr><td class="mono">LPS_MIN_VALID_V, LPS_MAX_VALID_V</td><td class="mono">0.2, 4.8</td><td><span class="tag guess">guess</span></td><td>Outside this range the LPS is treated as failed.</td></tr>
+        <tr><td class="mono">EST_AGREE_SAMPLES, EST_DISAGREE_SAMPLES</td><td class="mono">10 (50 ms), 40 (200 ms)</td><td><span class="tag guess">guess</span></td><td>How long the estimate must hold to resolve or override a gear.</td></tr>
+        <tr><td class="mono">INVALID_OUTPUT_V</td><td class="mono">0.0</td><td><span class="tag guess">agreed for now</span></td><td>Sent when the gear is not known. The M1 diagnostic limits must treat it as a fault.</td></tr>
+        <tr><td class="mono">ASSUME_FIRST_WHEN_LEAVING_NEUTRAL</td><td class="mono">true</td><td><span class="tag guess">assumption</span></td><td>Driver selects 1st by hand from N.</td></tr>
+        <tr><td class="mono">ESTIMATE_ENABLED</td><td class="mono">false</td><td><span class="tag ph">placeholder</span></td><td>Stays off until the values below are measured.</td></tr>
+        <tr><td class="mono">RATIO_SCALE, EST_MIN_*, CLUTCH_ENGAGED_MAX</td><td class="mono">1.0, 2000, 50, 5.0</td><td><span class="tag ph">placeholder</span></td><td>Primary reduction, final drive and units, plus gating limits.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ============================ FMEA ============================ -->
+<section id="fmea">
+  <h2>FMEA</h2>
+  <p class="lede">Failure modes for the whole gear position path, from the sensors to the actuator. Click a column heading to sort, or pick a subsystem to filter.</p>
+
+  <div class="callout">
+    <b>Draft scores.</b> Severity, occurrence and detection are my first estimates, not test data. The RPN bands only help sorting. The team should set its own scores and its action threshold.
+    <div class="note" style="margin-top:6px"><b>S</b> effect on the car and driver, 10 worst. <b>O</b> how likely the cause is, 10 most likely. <b>D</b> how unlikely the current controls are to catch it in time, 10 not caught. <b>RPN</b> = S x O x D.</div>
+  </div>
+
+  <div class="fmea-tools" role="group" aria-label="Filter by subsystem" id="chips"></div>
+  <div class="fmea-sum" id="summary" aria-live="polite"></div>
+
+  <div class="table-frame">
+    <table id="fmea-table">
+      <thead>
+        <tr>
+          <th role="button" tabindex="0" data-sort="id">ID</th>
+          <th>Item and failure mode</th>
+          <th>Effect</th>
+          <th>Cause</th>
+          <th>Control now</th>
+          <th class="num" role="button" tabindex="0" data-sort="s">S</th>
+          <th class="num" role="button" tabindex="0" data-sort="o">O</th>
+          <th class="num" role="button" tabindex="0" data-sort="d">D</th>
+          <th class="num" role="button" tabindex="0" data-sort="rpn" id="rpn-head">RPN</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="fmea-body"></tbody>
+    </table>
+  </div>
+
+  <h3 style="margin-top:24px">Gaps found while writing this</h3>
+  <ul class="plain">
+    <li>A neutral switch stuck closed is not caught. The code trusts the switch, so a valid estimate in gear cannot overrule it.</li>
+    <li>Version 1 read the DAC output back on A1. Version 2 dropped that, so a wrong output voltage is not detected.</li>
+    <li>A floating LPS reads mid-range and passes the range check. It only shows up as a 2 second release timeout.</li>
+    <li>The M1 diagnostic limits and per-gear positions have to be set from the Arduino output before any of this is meaningful.</li>
+  </ul>
+</section>
+
+<!-- ============================ OPEN ============================ -->
+<section id="open">
+  <h2>Open items</h2>
+  <ul class="plain">
+    <li><b>CAN wiring.</b> The transceiver is wired with TX on D10, which is the R4 CAN TX pin. D3 has no CAN function, so the receive line has to be on D13, the only header pin with CAN RX. If D3 is the transceiver standby or enable pin, the sketch does not drive it yet.</li>
+    <li><b>CAN setup.</b> Still needs the bus bit rate and the frame layout for engine speed, wheel speed and clutch position. CAN stays off until then, because a node at the wrong bit rate can disturb the M1 bus.</li>
+    <li><b>Estimate calibration.</b> Measure <code>RATIO_SCALE</code>, wheel speed units, clutch position scale and minimum speeds from a logged run, then enable it.</li>
+    <li><b>LPS.</b> Find why the bench reads about 1.25 V, confirm the mount, and set the thresholds from logged shifts.</li>
+    <li><b>M1 setup.</b> Set the gear position diagnostic limits and delay so 0.0 V is a fault, and learn each gear voltage from the Arduino output.</li>
+    <li><b>Timing.</b> Measure the delay from the LPS crossing to the M1 seeing the new gear, against the M1 shift time.</li>
+    <li><b>Firmware.</b> Uploaded with CAN off and <code>DEBUG</code> on. The board reports gear not known and 0.0 V because the neutral switch reads in gear. Set <code>DEBUG</code> to false for the car.</li>
+  </ul>
+</section>
+
+</main>
+
+<footer>
+  <div class="wrap">Sources: M1 GPRP configuration manual, the Paddle Shift development notes, and the v2 firmware in GPS_code_v2_fsm.</div>
+</footer>
+
+<script>
+(function () {
+  var SYSTEMS = ['LPS', 'Neutral switch', 'Arduino', 'CAN estimate', 'Actuation', 'M1 and paddles'];
+  var DATA = [
+    { id: 'F01', sys: 'LPS', mode: 'Open or shorted circuit, reads near 0 V or 5 V',
+      effect: 'No shift events seen. Code goes to FAULT and outputs 0.0 V. The M1 raises its own gear sensor fault and uses its gear estimate.',
+      cause: 'Broken wire, connector, shorted harness',
+      control: 'Range check 0.2 to 4.8 V for 15 ms. M1 diagnostic limits.',
+      s: 7, o: 4, d: 2, action: 'Set the M1 diagnostic limits and delay so 0.0 V reads as a fault.' },
+    { id: 'F02', sys: 'LPS', mode: 'Floating or disconnected, reads mid-range (bench 1.0 to 1.25 V)',
+      effect: 'Looks like a held downshift. One shift is counted, then the 2 s release timeout puts the code in FAULT. Gear tracking is wrong until neutral is seen.',
+      cause: 'Missing pull resistor, bad ground, sensor not connected',
+      control: 'Release timeout 2 s. The range check does not catch it.',
+      s: 6, o: 5, d: 4, action: 'Find the cause of the 1.25 V reading. Add a sensor presence check.' },
+    { id: 'F03', sys: 'LPS', mode: 'Drift or offset, thresholds crossed late or never',
+      effect: 'Missed or false shift events. The tracked gear is wrong, so the M1 gets the wrong gear for rev matching and over-rev protection.',
+      cause: 'Ageing, temperature, mount movement, loose 1.5 and 3.0 V calibration',
+      control: 'Neutral switch corrects at N. Estimate cross-check once enabled.',
+      s: 8, o: 4, d: 6, action: 'Log the LPS through real shifts and set thresholds from data, using the logged shift peak to define a complete shift. Calibrate and enable the estimate.' },
+    { id: 'F04', sys: 'LPS', mode: 'Electrical noise on the signal',
+      effect: 'False shift events, then a gear count error.',
+      cause: 'Ignition noise, long unshielded harness',
+      control: '15 ms LPS debounce.',
+      s: 6, o: 4, d: 3, action: 'Use shielded cable and an RC filter. Check on a scope.' },
+    { id: 'F05', sys: 'Neutral switch', mode: 'Stuck closed, always reads neutral',
+      effect: 'The code forces gear N on every sample and sends 0.5 V while in gear. The estimate cannot overrule the switch.',
+      cause: 'Jammed switch, short to ground',
+      control: 'None. This is a gap.',
+      s: 8, o: 3, d: 8, action: 'Treat a valid estimate in gear for a sustained time, while the switch says neutral, as a switch fault and output 0.0 V.' },
+    { id: 'F06', sys: 'Neutral switch', mode: 'Stuck open or wire broken, never neutral',
+      effect: 'Gear stays unknown from start-up and the output stays 0.0 V. The M1 uses its own estimate. Recovery from UNKNOWN or FAULT needs the estimate.',
+      cause: 'Broken wire, corrosion',
+      control: 'The 0.0 V output is visible to the M1. No flag in the code.',
+      s: 5, o: 3, d: 4, action: 'Bench test. Consider a diagnostic output.' },
+    { id: 'F07', sys: 'Neutral switch', mode: 'Contact bounce or chatter',
+      effect: 'Brief false neutral, gear forced to N then back.',
+      cause: 'Vibration',
+      control: '15 ms neutral debounce.',
+      s: 5, o: 4, d: 3, action: 'Check the contact on a scope while running.' },
+    { id: 'F08', sys: 'Arduino', mode: 'Reset, brownout or lock-up',
+      effect: 'The output drops and the gear becomes unknown until neutral or the estimate recovers it. The M1 is in fallback mid-drive.',
+      cause: 'Supply dip at cranking, transient, firmware fault',
+      control: 'None. No watchdog.',
+      s: 7, o: 4, d: 3, action: 'Enable the watchdog. Use an automotive 12 V to 5 V supply with transient protection. Test during cranking.' },
+    { id: 'F09', sys: 'Arduino', mode: 'DAC output wrong (offset, noise, loading, ground offset)',
+      effect: 'The M1 reads a voltage outside the tolerance for that gear and sees the gear as unknown or wrong.',
+      cause: 'Ground difference between the Arduino and the M1 sensor ground, DAC offset',
+      control: 'None. Version 1 read the output back on A1, version 2 does not.',
+      s: 7, o: 4, d: 6, action: 'Restore the loopback check. Share the sensor ground with the M1. Measure what the M1 reads.' },
+    { id: 'F10', sys: 'M1 and paddles', mode: 'Arduino voltage table does not match the M1 gear positions',
+      effect: 'The M1 does not recognise the gears. It reports an unknown gear or goes to fault mode.',
+      cause: 'Table is marked "need to update"',
+      control: 'None.',
+      s: 6, o: 6, d: 3, action: 'Learn each gear position in the M1 from the Arduino output.' },
+    { id: 'F11', sys: 'Arduino', mode: 'Output delay too long for the M1 shift time',
+      effect: 'The M1 expects the gear change within its shift time. A late change gives retries or extra actuations.',
+      cause: '15 ms debounce plus 5 ms sample, plus actuator travel',
+      control: 'None measured.',
+      s: 6, o: 3, d: 5, action: 'Measure the LPS crossing to the M1 gear change. Keep it well inside the shift time (manual suggests about 150 ms).' },
+    { id: 'F12', sys: 'Arduino', mode: 'Logic bug in an untested path, or wrong tuning values',
+      effect: 'Wrong gear or a false FAULT on the car.',
+      cause: 'Constants are guesses and tests ran on a PC only',
+      control: '22 desktop test groups. Bench run only, no car testing yet.',
+      s: 7, o: 5, d: 4, action: 'Bench test with a signal generator, then log on the car with DEBUG on.' },
+    { id: 'F13', sys: 'CAN estimate', mode: 'RATIO_SCALE or units wrong when the estimate is on',
+      effect: 'A wrong estimate held for 200 ms replaces the correct LPS gear and the M1 gets the wrong gear.',
+      cause: 'Placeholder constants, wheel speed units, tyre slip',
+      control: 'Off by default. Needs clutch engaged and minimum speeds.',
+      s: 8, o: 3, d: 5, action: 'Calibrate against logged runs before enabling.' },
+    { id: 'F14', sys: 'CAN estimate', mode: 'Wrong CAN layout (id, byte position, scale, bit rate)',
+      effect: 'Nonsense speeds. The estimate is mostly invalid, but could match a wrong gear.',
+      cause: 'Layout not defined yet',
+      control: 'Estimate off. 100 ms freshness check.',
+      s: 6, o: 5, d: 4, action: 'Log raw frames with DEBUG on and match them to the M1 CAN transmit setup.' },
+    { id: 'F15', sys: 'CAN estimate', mode: 'Bus or transceiver failure, stale frames',
+      effect: 'The estimate is unavailable. The code relies on the neutral switch and LPS only.',
+      cause: 'Wiring, termination, transceiver',
+      control: '100 ms freshness check.',
+      s: 3, o: 4, d: 2, action: 'Check termination and the transceiver supply.' },
+    { id: 'F16', sys: 'Arduino', mode: 'Intermittent contact on LPS, switch or DAC wiring',
+      effect: 'Intermittent faults and false events.',
+      cause: 'Vibration, weak connectors',
+      control: 'Debounce, range check.',
+      s: 6, o: 6, d: 5, action: 'Locking connectors, strain relief, twisted shielded pairs.' },
+    { id: 'F17', sys: 'Actuation', mode: 'Actuator stroke too short or too long',
+      effect: 'Incomplete shift or a skipped gear. The LPS may not cross a threshold, so the event is missed, or N may be skipped.',
+      cause: 'Mechanical setup, linkage wear. The M1 cannot control stroke.',
+      control: 'Neutral switch confirms N. Estimate once enabled.',
+      s: 8, o: 5, d: 6, action: 'Measure LPS travel against gear change for every gear on the car.' },
+    { id: 'F18', sys: 'Actuation', mode: 'Unintended neutral or skipped neutral near 1, N, 2',
+      effect: 'The car lands in neutral when the driver expects a gear, or skips it. The M1 has no half shift support.',
+      cause: 'Mechanism, driver input',
+      control: 'The neutral switch confirms N. A mismatch sets the gear to unknown.',
+      s: 7, o: 5, d: 3, action: 'Test the 1, N, 2 shifts on the car with the paddles and by hand.' },
+    { id: 'F19', sys: 'Actuation', mode: 'Solenoid stuck on or stuck off',
+      effect: 'Continuous push, or no shift.',
+      cause: 'Debris, coil failure, wiring',
+      control: 'Release timeout 2 s gives FAULT. M1 retry limit.',
+      s: 8, o: 3, d: 4, action: 'Check solenoid current and valve operation at commissioning.' },
+    { id: 'F20', sys: 'Actuation', mode: 'CO2 bottle empty or regulator failure',
+      effect: 'The actuator does not move and shifts fail. The M1 retries, then recovers.',
+      cause: 'Limited shifts per bottle',
+      control: 'M1 actuator pressure input, if fitted.',
+      s: 7, o: 5, d: 3, action: 'Count shifts per bottle, fit a pressure sensor, plan a swap.' },
+    { id: 'F21', sys: 'Actuation', mode: 'Leak or hose and fitting failure',
+      effect: 'Pressure loss and CO2 release near the driver. Rules T.6.1 apply.',
+      cause: 'Fitting, vibration, damage',
+      control: '-4AN hose rated far above the 800 psi supply. Mounted outside the cockpit.',
+      s: 8, o: 3, d: 4, action: 'Pressure test the whole line. Inspect before each run.' },
+    { id: 'F22', sys: 'M1 and paddles', mode: 'Paddle switch stuck or open',
+      effect: 'The M1 enters its paddle fault mode. No change to the Arduino logic.',
+      cause: 'Wear, wiring',
+      control: 'M1 paddle fault modes.',
+      s: 6, o: 3, d: 3, action: 'Set the M1 fault behaviour and test it.' },
+    { id: 'F23', sys: 'Arduino', mode: 'Start-up in gear, gear not known (by design)',
+      effect: 'The output is 0.0 V and the M1 uses its own estimate until neutral is seen or the estimate resolves it.',
+      cause: 'Design choice: assume nothing at start-up',
+      control: 'Design.',
+      s: 4, o: 7, d: 1, action: 'Confirm the M1 behaves acceptably in this state on the car.' },
+    { id: 'F24', sys: 'Arduino', mode: 'Assumption that leaving neutral by hand means 1st is wrong',
+      effect: 'The gear is wrong until neutral is seen or the estimate corrects it.',
+      cause: 'Driver selects another gear from N',
+      control: 'None. A setting turns the assumption off.',
+      s: 6, o: 2, d: 6, action: 'Confirm with the driver and the gearbox how N is left.' },
+    { id: 'F25', sys: 'M1 and paddles', mode: 'M1 diagnostic limits do not flag 0.0 V',
+      effect: 'The M1 treats the 0.0 V "gear unknown" output as a valid reading.',
+      cause: 'Diagnostic low limit set at or below 0 V',
+      control: 'None until the M1 tune is checked.',
+      s: 7, o: 3, d: 6, action: 'Set the diagnostic low limit above 0 V and set the diagnostic delay.' },
+    { id: 'F26', sys: 'CAN estimate', mode: 'Transceiver receive line on a pin with no CAN function (D3)',
+      effect: 'No CAN frames are received. The estimate is unavailable and the code relies on the neutral switch and LPS.',
+      cause: 'On the UNO R4 WiFi, CAN RX is only on D13. D10 is CAN TX.',
+      control: 'CAN is off in the uploaded build. 100 ms freshness check.',
+      s: 3, o: 6, d: 2, action: 'Move the receive line to D13, or confirm what D3 is wired to.' },
+    { id: 'F27', sys: 'CAN estimate', mode: 'CAN node at the wrong bit rate on the M1 bus',
+      effect: 'Error frames from the Arduino can disturb the M1 CAN bus and other nodes on it.',
+      cause: 'Bit rate in the sketch is a placeholder',
+      control: 'CAN is off in the uploaded build.',
+      s: 8, o: 3, d: 4, action: 'Confirm the bus bit rate before enabling CAN. Try it on a bench bus first.' },
+    { id: 'F28', sys: 'Arduino', mode: 'LED display shows a gear that differs from the one the M1 uses',
+      effect: 'The driver or a mechanic trusts the digit while the M1 is on its own gear estimate, for example after a gear sensor fault. No effect on the output voltage.',
+      cause: 'The display shows the tracked gear, and the M1 falls back to its own estimate when it flags a fault',
+      control: 'A cross shows when the gear is not known or in FAULT.',
+      s: 3, o: 4, d: 5, action: 'Treat the display as a bench and diagnostic aid. Compare it with the M1 gear channel in logs.' }
+  ];
+
+  DATA.forEach(function (r) { r.rpn = r.s * r.o * r.d; });
+
+  var state = { sys: 'All', key: 'rpn', dir: -1 };
+  var body = document.getElementById('fmea-body');
+  var chips = document.getElementById('chips');
+  var summary = document.getElementById('summary');
+
+  function esc(t) {
+    return String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+  function band(rpn) { return rpn >= 200 ? 'crit' : (rpn >= 120 ? 'high' : 'mod'); }
+
+  function renderChips() {
+    chips.innerHTML = '';
+    ['All'].concat(SYSTEMS).forEach(function (name) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'chip';
+      b.textContent = name;
+      b.setAttribute('aria-pressed', state.sys === name ? 'true' : 'false');
+      b.addEventListener('click', function () { state.sys = name; render(); });
+      chips.appendChild(b);
+    });
+  }
+
+  function renderSummary(rows) {
+    var crit = rows.filter(function (r) { return r.rpn >= 200; }).length;
+    var high = rows.filter(function (r) { return r.rpn >= 120 && r.rpn < 200; }).length;
+    var top = rows.slice().sort(function (a, b) { return b.rpn - a.rpn; })[0];
+    summary.innerHTML =
+      '<div><b>' + rows.length + '</b><span>failure modes shown</span></div>' +
+      '<div><b>' + crit + '</b><span>with RPN 200 or more</span></div>' +
+      '<div><b>' + high + '</b><span>with RPN 120 to 199</span></div>' +
+      (top ? '<div><b>' + top.rpn + '</b><span>highest: ' + esc(top.id) + ', ' + esc(top.mode.toLowerCase()) + '</span></div>' : '');
+  }
+
+  function renderBody(rows) {
+    body.innerHTML = rows.map(function (r) {
+      return '<tr>' +
+        '<td class="fid">' + esc(r.id) + '</td>' +
+        '<td><span class="mode">' + esc(r.mode) + '</span><span class="tag">' + esc(r.sys) + '</span></td>' +
+        '<td>' + esc(r.effect) + '</td>' +
+        '<td>' + esc(r.cause) + '</td>' +
+        '<td>' + esc(r.control) + '</td>' +
+        '<td class="num">' + r.s + '</td>' +
+        '<td class="num">' + r.o + '</td>' +
+        '<td class="num">' + r.d + '</td>' +
+        '<td class="num"><span class="rpn ' + band(r.rpn) + '">' + r.rpn + '</span></td>' +
+        '<td>' + esc(r.action) + '</td>' +
+        '</tr>';
+    }).join('');
+  }
+
+  function render() {
+    var rows = DATA.filter(function (r) { return state.sys === 'All' || r.sys === state.sys; });
+    rows.sort(function (a, b) {
+      var x = a[state.key], y = b[state.key];
+      if (x < y) return -1 * state.dir;
+      if (x > y) return 1 * state.dir;
+      return a.id < b.id ? -1 : 1;
+    });
+    renderChips();
+    renderSummary(rows);
+    renderBody(rows);
+    document.querySelectorAll('#fmea-table th[data-sort]').forEach(function (th) {
+      var active = th.getAttribute('data-sort') === state.key;
+      th.setAttribute('aria-sort', active ? (state.dir === 1 ? 'ascending' : 'descending') : 'none');
+    });
+  }
+
+  document.querySelectorAll('#fmea-table th[data-sort]').forEach(function (th) {
+    function go() {
+      var key = th.getAttribute('data-sort');
+      if (state.key === key) { state.dir = -state.dir; } else { state.key = key; state.dir = key === 'id' ? 1 : -1; }
+      render();
+    }
+    th.addEventListener('click', go);
+    th.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } });
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>

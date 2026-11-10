@@ -1,51 +1,88 @@
-<!doctype html><html><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow, noarchive, nosnippet, noimageindex">
-<title>Gear</title>
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#0b0d10">
+<title>GearSensor</title>
+<!--PWA-->
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Gear">
+<!--/PWA-->
 <style>
-*{box-sizing:border-box}
-body{margin:0;background:#0b0d10;color:#e8eaed;font:16px system-ui,sans-serif;padding:12px 16px}
-#big{font:700 30vh/1 system-ui,sans-serif;text-align:center;margin:1vh 0 0}
-#big.ok{color:#fff}#big.busy{color:#f5b942}#big.bad{color:#ff5a4f}#big.off{color:#555}
-#st{text-align:center;font-size:20px;margin:0 0 10px}
-#why{display:none;border-radius:8px;padding:10px 12px;margin:0 0 12px;font-size:16px;line-height:1.35;background:#3a1514;border:1px solid #ff5a4f}
-#why.amber{background:#3a2a0e;border-color:#f5b942}
-#why b{display:block;margin-bottom:2px}
-#conn{display:none;text-align:center;margin:0 0 12px}
-#conn button{font:600 18px system-ui,sans-serif;padding:12px 22px;border-radius:8px;border:0;background:#3b82f6;color:#fff}
-#conn p{color:#8a919b;font-size:14px;margin:8px 0 0}
-.two{display:flex;gap:10px;margin:0 0 10px}
-.card{flex:1;background:#14181d;border-radius:8px;padding:8px 10px;text-align:center}
-.card small{display:block;color:#8a919b;font-size:12px}
-.card span{font:700 40px/1.1 system-ui,sans-serif}
-#cmp{text-align:center;font-size:14px;margin:-4px 0 10px;color:#8a919b}
-#cmp.bad{color:#f5b942}
-.row{display:flex;justify-content:space-between;margin:6px 0;font-size:17px;gap:12px}
-.row b{font-variant-numeric:tabular-nums;text-align:right}
-#bar{position:relative;height:26px;background:#1d2127;border-radius:6px;margin:10px 0 4px}
-#fill{position:absolute;left:0;top:0;bottom:0;background:#3b82f6;border-radius:6px;width:0}
+:root{--bg:#0b0d10;--card:#151a21;--line:#232a33;--ink:#eef1f5;--mute:#8d96a3;--ok:#ffffff;--busy:#f5b942;--bad:#ff5a4f;--off:#4a515b;--blue:#3b82f6;--live:#35d07f}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{background:var(--bg)}
+body{margin:0;min-height:100vh;color:var(--ink);font:16px/1.4 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+ background:radial-gradient(120% 60% at 50% -10%,#16202e 0,var(--bg) 60%);
+ padding:max(10px,env(safe-area-inset-top)) max(14px,env(safe-area-inset-right)) max(18px,env(safe-area-inset-bottom)) max(14px,env(safe-area-inset-left))}
+header{display:flex;align-items:center;justify-content:space-between;margin:2px 0 6px}
+.brand{display:flex;align-items:center;gap:8px;font-weight:650;letter-spacing:.02em}
+.brand img{width:26px;height:26px;border-radius:6px}
+.chip{font-size:13px;font-weight:600;padding:4px 10px;border-radius:999px;background:#1b2029;color:var(--mute);border:1px solid var(--line)}
+.chip.live{color:var(--live);border-color:#1d4a35;background:#10241b}
+.chip.live:before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--live);margin-right:6px}
+#hero{display:flex;flex-direction:column;align-items:center;margin:8px 0 12px}
+#ring{width:min(60vw,290px);aspect-ratio:1;border-radius:50%;display:flex;align-items:center;justify-content:center;
+ border:10px solid var(--off);background:radial-gradient(circle at 50% 35%,#1a2029,#10141a);box-shadow:0 8px 40px rgba(0,0,0,.5)}
+#big{font:700 min(34vw,160px)/1 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:var(--off)}
+#hero.ok #ring{border-color:#e9edf3}#hero.ok #big{color:var(--ok)}
+#hero.busy #ring{border-color:var(--busy);animation:pulse .5s ease-in-out infinite alternate}#hero.busy #big{color:var(--busy)}
+#hero.bad #ring{border-color:var(--bad)}#hero.bad #big{color:var(--bad)}
+@keyframes pulse{from{box-shadow:0 0 0 0 rgba(245,185,66,.0)}to{box-shadow:0 0 30px 6px rgba(245,185,66,.35)}}
+#st{margin-top:12px;font-size:18px;font-weight:650;letter-spacing:.08em;color:var(--mute)}
+#hero.ok #st{color:var(--ink)}#hero.busy #st{color:var(--busy)}#hero.bad #st{color:var(--bad)}
+#why{display:none;border-radius:12px;padding:12px 14px;margin:0 0 12px;font-size:15px;line-height:1.4;background:#2a1213;border:1px solid #7a2b2b}
+#why.amber{background:#2a210d;border-color:#7a5a1e}
+#why b{display:block;margin-bottom:3px;font-size:16px}
+#conn{display:none;text-align:center;margin:0 0 14px}
+#conn button{font:650 18px system-ui,sans-serif;padding:14px 26px;border-radius:999px;border:0;background:var(--blue);color:#fff;box-shadow:0 6px 20px rgba(59,130,246,.35)}
+#conn p{color:var(--mute);font-size:14px;margin:10px 0 0}
+.two{display:flex;gap:10px;margin:0 0 8px}
+.card{flex:1;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px;text-align:center}
+.card small{display:block;color:var(--mute);font-size:12px;letter-spacing:.03em}
+.card span{font:700 40px/1.15 system-ui,sans-serif}
+#cmp{text-align:center;font-size:14px;margin:0 0 10px;color:var(--mute)}
+#cmp.bad{color:var(--busy)}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:6px 14px;margin:0 0 10px}
+.row{display:flex;justify-content:space-between;align-items:baseline;gap:14px;padding:8px 0;font-size:16px;border-bottom:1px solid var(--line)}
+.row:last-child{border-bottom:0}
+.row span{color:var(--mute)}
+.row b{font-variant-numeric:tabular-nums;text-align:right;font-weight:600}
+#bar{position:relative;height:22px;background:#0f1319;border-radius:8px;margin:10px 0 4px;border:1px solid var(--line)}
+#fill{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,#2563eb,#60a5fa);border-radius:7px;width:0}
 .mk{position:absolute;top:-4px;bottom:-4px;width:2px;background:#e8eaed}
-.mk.f{background:#555}
-#sc{display:flex;justify-content:space-between;font-size:12px;color:#8a919b}
-#log{font:13px ui-monospace,monospace;color:#aab;margin-top:14px;white-space:pre-line}
-#stat{font-size:12px;color:#8a919b;margin-top:10px}
+.mk.f{background:#4a515b}
+#sc{display:flex;justify-content:space-between;font-size:12px;color:var(--mute);margin-bottom:8px}
+#log{font:12.5px ui-monospace,Menlo,monospace;color:#a7b0bd;white-space:pre-line;line-height:1.55}
+#stat{font-size:12px;color:var(--mute);margin:6px 2px 0}
+h2{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--mute);margin:16px 2px 6px;font-weight:650}
 </style></head><body>
-<div id="big" class="off">-</div><div id="st">connecting</div>
+<header><div class="brand"><img src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" id="logo" alt="">GearSensor</div><div id="link" class="chip">no link</div></header>
+<div id="hero" class="off"><div id="ring"><div id="big">-</div></div><div id="st">connecting</div></div>
 <div id="conn"><button id="btn">Connect Bluetooth</button><p id="cmsg"></p></div>
 <div id="why"></div>
-<div class="two"><div class="card"><small>Gear by LPS count</small><span id="gl">-</span></div>
-<div class="card"><small>Gear by CAN estimate</small><span id="ge">-</span></div></div>
+<div class="two"><div class="card"><small>GEAR BY LPS COUNT</small><span id="gl">-</span></div>
+<div class="card"><small>GEAR BY CAN ESTIMATE</small><span id="ge">-</span></div></div>
 <div id="cmp"></div>
+<div class="panel">
 <div class="row"><span>CAN</span><b id="can">-</b></div>
-<div class="row"><span>LPS</span><b id="lps">-</b></div>
-<div id="bar"><div id="fill"></div>
-<div class="mk f" style="left:4%"></div><div class="mk" style="left:30%"></div>
-<div class="mk" style="left:60%"></div><div class="mk f" style="left:96%"></div></div>
-<div id="sc"><span>0</span><span>1.5 down</span><span>3.0 up</span><span>5 V</span></div>
 <div class="row"><span>Neutral switch</span><b id="ns">-</b></div>
 <div class="row"><span>Output to M1</span><b id="out">-</b></div>
 <div class="row"><span>Last shift peak</span><b id="pk">-</b></div>
-<div id="stat"></div><div id="log"></div>
+</div>
+<h2>Linear position sensor</h2>
+<div class="panel"><div class="row"><span>LPS</span><b id="lps">-</b></div>
+<div id="bar"><div id="fill"></div>
+<div class="mk f" style="left:4%"></div><div class="mk" style="left:30%"></div>
+<div class="mk" style="left:60%"></div><div class="mk f" style="left:96%"></div></div>
+<div id="sc"><span>0</span><span>1.5 down</span><span>3.0 up</span><span>5 V</span></div></div>
+<h2>Events</h2>
+<div class="panel"><div id="log">-</div></div>
+<div id="stat"></div>
 <script>
 var MODES=['UNKNOWN','ARMED','SHIFTING','FAULT'];
 var CANS=['not built in','started, no frames yet','frames seen, signals missing or stale','signals fresh'];
@@ -57,15 +94,17 @@ var WHY=[
  ['FAULT: LPS out of range','The LPS voltage is outside 0.2 to 4.8 V. Check the sensor wiring, power and ground. It recovers when the reading is sensible and the neutral switch shows neutral.'],
  ['FAULT: LPS did not return to rest','After a shift the LPS stayed outside the 1.5 to 3.0 V rest band for over 2 s. The sensor or linkage is held, or the sensor does not rest inside the band. It recovers when the reading is sensible and the neutral switch shows neutral.']
 ];
-var $=function(i){return document.getElementById(i)},last=null,log=[];
+var $=function(i){return document.getElementById(i)},last=null,log=[],TRANSPORT='WiFi';
 function v(mv){return (mv/1000).toFixed(2)+' V'}
 function gl(g){return g<0?'-':(g==0?'N':g)}
-function nolink(msg){$('big').textContent='?';$('big').className='off';$('st').textContent=msg||'NO LINK'}
+function setHero(c){$('hero').className=c}
+function nolink(msg){$('big').textContent='?';setHero('off');$('st').textContent=msg||'NO LINK';$('link').textContent='no link';$('link').className='chip'}
 function show(s){
- var d=s.d,big=$('big');
- big.textContent=d<0?'X':(d==0?'N':d);
- big.className=d<0?'bad':(s.m==2?'busy':'ok');
+ var d=s.d;
+ $('big').textContent=d<0?'X':(d==0?'N':d);
+ setHero(d<0?'bad':(s.m==2?'busy':'ok'));
  $('st').textContent=MODES[s.m];
+ $('link').textContent=TRANSPORT;$('link').className='chip live';
  var w=$('why'),t=WHY[s.w];
  if(t&&(s.m==0||s.m==3)){w.style.display='block';w.className=s.m==3?'':'amber';w.innerHTML='<b>'+t[0]+'</b>'+t[1]}else w.style.display='none';
  $('gl').textContent=gl(s.g);
@@ -112,8 +151,11 @@ function bleConnect(){
   dev=d;dev.addEventListener('gattserverdisconnected',bleDrop);return bleLink();
  }).catch(function(e){$('cmsg').textContent='Could not connect: '+e.message});
 }
-if(location.protocol==='http:'){poll()}
+if(location.protocol==='http:'){TRANSPORT='WiFi';poll()}
 else{
+ TRANSPORT='Bluetooth';
+ var lg=$('logo');lg.src='icons/icon-192.png';
+ if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(function(){});
  nolink('not connected');$('conn').style.display='block';
  if(navigator.bluetooth){$('btn').onclick=bleConnect;$('cmsg').textContent='Switch the board on, then tap the button and pick GearSensor.'}
  else{$('btn').style.display='none';$('cmsg').textContent='This browser has no Web Bluetooth. Use Chrome on Android, the Bluefy browser on iPhone, or join the GearSensor WiFi and open http://192.168.4.1.'}

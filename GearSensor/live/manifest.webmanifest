@@ -1,6 +1,6 @@
 {
-  "name": "GearSensor",
-  "short_name": "Gear",
+  "name": "Gear Position Sensor Tester",
+  "short_name": "Gear Tester",
   "description": "Live gear, LPS voltage, CAN status and fault reasons from the paddle shift gear sensor",
   "start_url": "./",
   "scope": "./",

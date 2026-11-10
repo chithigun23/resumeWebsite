@@ -3,14 +3,14 @@
 <meta name="robots" content="noindex, nofollow, noarchive, nosnippet, noimageindex">
 <meta name="color-scheme" content="dark">
 <meta name="theme-color" content="#0b0d10">
-<title>GearSensor</title>
+<title>Gear Position Sensor Tester</title>
 <!--PWA-->
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Gear">
+<meta name="apple-mobile-web-app-title" content="Gear Tester">
 <!--/PWA-->
 <style>
 :root{--bg:#0b0d10;--card:#151a21;--line:#232a33;--ink:#eef1f5;--mute:#8d96a3;--ok:#ffffff;--busy:#f5b942;--bad:#ff5a4f;--off:#4a515b;--blue:#3b82f6;--live:#35d07f}
@@ -20,9 +20,12 @@ body{margin:0;min-height:100vh;color:var(--ink);font:16px/1.4 system-ui,-apple-s
  background:radial-gradient(120% 60% at 50% -10%,#16202e 0,var(--bg) 60%);
  padding:max(10px,env(safe-area-inset-top)) max(14px,env(safe-area-inset-right)) max(18px,env(safe-area-inset-bottom)) max(14px,env(safe-area-inset-left))}
 header{display:flex;align-items:center;justify-content:space-between;margin:2px 0 6px}
-.brand{display:flex;align-items:center;gap:8px;font-weight:650;letter-spacing:.02em}
+.brand{display:flex;align-items:center;gap:8px;font-weight:650;font-size:15px;letter-spacing:.01em;min-width:0}
 .brand img{width:26px;height:26px;border-radius:6px}
 .chip{font-size:13px;font-weight:600;padding:4px 10px;border-radius:999px;background:#1b2029;color:var(--mute);border:1px solid var(--line)}
+.right{display:flex;gap:6px;align-items:center;flex-shrink:0}
+button.chip{font-family:inherit;cursor:pointer}
+.chip.demo{color:var(--busy);border-color:#5a4416;background:#241c0b}
 .chip.live{color:var(--live);border-color:#1d4a35;background:#10241b}
 .chip.live:before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--live);margin-right:6px}
 #hero{display:flex;flex-direction:column;align-items:center;margin:8px 0 12px}
@@ -61,7 +64,7 @@ header{display:flex;align-items:center;justify-content:space-between;margin:2px 
 #stat{font-size:12px;color:var(--mute);margin:6px 2px 0}
 h2{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--mute);margin:16px 2px 6px;font-weight:650}
 </style></head><body>
-<header><div class="brand"><img src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" id="logo" alt="">GearSensor</div><div id="link" class="chip">no link</div></header>
+<header><div class="brand"><img src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" id="logo" alt="">Gear Position Sensor Tester</div><div class="right"><button id="demo" class="chip">Demo</button><div id="link" class="chip">no link</div></div></header>
 <div id="hero" class="off"><div id="ring"><div id="big">-</div></div><div id="st">connecting</div></div>
 <div id="conn"><button id="btn">Connect Bluetooth</button><p id="cmsg"></p></div>
 <div id="why"></div>
@@ -94,17 +97,17 @@ var WHY=[
  ['FAULT: LPS out of range','The LPS voltage is outside 0.2 to 4.8 V. Check the sensor wiring, power and ground. It recovers when the reading is sensible and the neutral switch shows neutral.'],
  ['FAULT: LPS did not return to rest','After a shift the LPS stayed outside the 1.5 to 3.0 V rest band for over 2 s. The sensor or linkage is held, or the sensor does not rest inside the band. It recovers when the reading is sensible and the neutral switch shows neutral.']
 ];
-var $=function(i){return document.getElementById(i)},last=null,log=[],TRANSPORT='WiFi';
+var $=function(i){return document.getElementById(i)},last=null,log=[],TRANSPORT='WiFi',demoOn=false;
 function v(mv){return (mv/1000).toFixed(2)+' V'}
 function gl(g){return g<0?'-':(g==0?'N':g)}
 function setHero(c){$('hero').className=c}
-function nolink(msg){$('big').textContent='?';setHero('off');$('st').textContent=msg||'NO LINK';$('link').textContent='no link';$('link').className='chip'}
+function nolink(msg){if(demoOn)return;$('big').textContent='?';setHero('off');$('st').textContent=msg||'NO LINK';$('link').textContent='no link';$('link').className='chip'}
 function show(s){
  var d=s.d;
  $('big').textContent=d<0?'X':(d==0?'N':d);
  setHero(d<0?'bad':(s.m==2?'busy':'ok'));
  $('st').textContent=MODES[s.m];
- $('link').textContent=TRANSPORT;$('link').className='chip live';
+ $('link').textContent=demoOn?'Demo data':TRANSPORT;$('link').className=demoOn?'chip demo':'chip live';
  var w=$('why'),t=WHY[s.w];
  if(t&&(s.m==0||s.m==3)){w.style.display='block';w.className=s.m==3?'':'amber';w.innerHTML='<b>'+t[0]+'</b>'+t[1]}else w.style.display='none';
  $('gl').textContent=gl(s.g);
@@ -123,10 +126,59 @@ function show(s){
  if(key!==last){last=key;log.unshift((s.up/1000).toFixed(1)+' s  '+(d<0?'X':gl(d))+'  '+MODES[s.m]+(t&&s.w?'  '+t[0]:'')+'  lps '+v(s.l)+'  CAN est '+(s.e<1?'-':s.e));if(log.length>12)log.pop();$('log').textContent=log.join('\n')}
 }
 
+// Real data from the board always wins: it stops the demo
+function live(s){if(demoOn)stopDemo();show(s)}
+
+// ---- Demo: a scripted run so the display can be seen without the board ----
+var DEMO_V=[500,1100,1700,2300,2900,3500,4100]; // output mV for N,1,2,3,4,5,6
+var DEMO_BASE={m:1,f:0,w:0,g:0,d:0,e:-1,n:1,l:2100,o:500,p:0,cs:3,cf:0,ce:0,up:0,gap:6,web:-1};
+var demoFrames=null,demoI=0,demoT=null,demoStart=0;
+function demoBuild(){
+ var F=[],rest={m:1,l:2100};
+ function gear(g,e,dir,peak){ // a shift: LPS pulse while shifting, then back to rest
+  var n=g==0?1:0;
+  F.push([550,{m:2,g:g,d:g,o:DEMO_V[g],n:n,l:dir>0?3500:1000,p:peak,e:e}]);
+  F.push([1500,{m:1,g:g,d:g,o:DEMO_V[g],n:n,l:2100,p:peak,e:e}]);
+ }
+ F.push([2500,{m:0,w:1,g:-1,d:-1,o:0,n:0,l:980,e:-1}]);   // start-up, in gear, nothing assumed
+ F.push([1800,{m:1,g:0,d:0,o:500,n:1,e:-1}]);               // neutral found
+ gear(2,-1,1,3500);gear(3,3,1,3520);gear(4,4,1,3480);gear(5,4,1,3510); // CAN estimate disagrees on 5th
+ F.push([1800,{m:1,g:5,d:5,o:3500,n:0,l:2100,p:3510,e:4}]);
+ gear(6,6,1,3530);gear(5,5,-1,980);gear(4,4,-1,1010);gear(3,3,-1,990);gear(2,2,-1,1000);gear(0,-1,-1,1005);
+ F.push([700,{m:2,g:0,d:0,o:500,n:0,l:1000,p:1000,e:-1}]); // LPS says neutral, switch says in gear
+ F.push([4000,{m:0,w:2,g:-1,d:-1,o:0,n:0,l:2100,p:1000,e:-1}]);
+ F.push([1800,{m:1,g:0,d:0,o:500,n:1,l:2100,e:-1}]);         // neutral seen again
+ F.push([4000,{m:3,f:1,w:4,g:0,d:-1,o:0,n:1,l:40,e:-1}]);    // LPS out of range
+ F.push([1800,{m:1,g:0,d:0,o:500,n:1,l:2100,e:-1}]);
+ F.push([4500,{m:3,f:2,w:5,g:2,d:-1,o:0,n:0,l:3400,p:3400,e:-1}]); // LPS did not return to rest
+ F.push([1800,{m:1,g:0,d:0,o:500,n:1,l:2100,p:3400,e:-1}]);
+ return F;
+}
+function demoStep(){
+ if(!demoOn)return;
+ var f=demoFrames[demoI%demoFrames.length],s={};
+ for(var k in DEMO_BASE)s[k]=DEMO_BASE[k];
+ for(var k2 in f[1])s[k2]=f[1][k2];
+ s.up=Date.now()-demoStart;s.cf=Math.floor(s.up/10);
+ show(s);demoI++;demoT=setTimeout(demoStep,f[0]);
+}
+function startDemo(){
+ if(!demoFrames)demoFrames=demoBuild();
+ demoOn=true;demoI=0;demoStart=Date.now();last=null;log=[];$('log').textContent='-';
+ $('conn').style.display='none';$('demo').textContent='Stop demo';demoStep();
+}
+function stopDemo(){
+ demoOn=false;clearTimeout(demoT);$('demo').textContent='Demo';
+ $('why').style.display='none';$('cmp').textContent='';
+ nolink('demo stopped');
+}
+$('demo').onclick=function(){demoOn?stopDemo():startDemo()};
+if(/[?&]demo\b/.test(location.search))setTimeout(startDemo,0);
+
 // ---- WiFi: the page served by the board at http://192.168.4.1 polls its JSON ----
 function poll(){
  var x=new XMLHttpRequest();x.open('GET','/s?'+Date.now());x.timeout=1200;
- x.onload=function(){try{show(JSON.parse(x.responseText))}catch(e){nolink()}};
+ x.onload=function(){try{live(JSON.parse(x.responseText))}catch(e){nolink()}};
  x.onerror=x.ontimeout=function(){nolink()};
  x.onloadend=function(){setTimeout(poll,250)};x.send();
 }
@@ -140,7 +192,7 @@ function decode(dv){
 }
 function bleLink(){
  return dev.gatt.connect().then(function(s){return s.getPrimaryService(SVC)}).then(function(sv){return sv.getCharacteristic(CHR)}).then(function(c){
-  c.addEventListener('characteristicvaluechanged',function(e){show(decode(e.target.value))});
+  c.addEventListener('characteristicvaluechanged',function(e){live(decode(e.target.value))});
   return c.startNotifications();
  }).then(function(){$('conn').style.display='none';$('st').textContent='connected'});
 }
@@ -151,7 +203,23 @@ function bleConnect(){
   dev=d;dev.addEventListener('gattserverdisconnected',bleDrop);return bleLink();
  }).catch(function(e){$('cmsg').textContent='Could not connect: '+e.message});
 }
-if(location.protocol==='http:'){TRANSPORT='WiFi';poll()}
+// ---- Native Android app: the app does the Bluetooth and calls these. Android.start() begins scanning for the board ----
+// window.onPacket(base64 of the 20 byte notification), window.onBleState(text such as 'scanning', 'connected', 'permission needed')
+window.onPacket=function(b64){
+ try{var bin=atob(b64),u=new Uint8Array(bin.length);for(var i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);
+  if(u.length>=20)live(decode(new DataView(u.buffer)))}catch(e){}
+};
+window.onBleState=function(t){
+ if(t==='connected'){$('conn').style.display='none';$('st').textContent='connected';return}
+ nolink(t);$('conn').style.display='block';$('btn').style.display='inline-block';
+ $('btn').textContent='Scan again';$('cmsg').textContent='Switch the board on. The app connects to GearSensor by itself.';
+};
+if(window.Android){
+ TRANSPORT='Bluetooth';
+ $('btn').onclick=function(){window.Android.start()};
+ nolink('starting');window.Android.start();
+}
+else if(location.protocol==='http:'){TRANSPORT='WiFi';poll()}
 else{
  TRANSPORT='Bluetooth';
  var lg=$('logo');lg.src='icons/icon-192.png';

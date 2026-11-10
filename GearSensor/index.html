@@ -210,9 +210,11 @@ footer { padding: 28px 0 48px; color: var(--muted); font-size: 13px; }
     <h1>Gear position system</h1>
     <p class="lede ink">An Arduino UNO R4 WiFi reads the shift actuator sensor and the neutral switch, works out which gear the car is in, and sends that gear to the MoTeC M1 GPRP as an analog voltage. This page covers the physical layout, the firmware structure and a draft FMEA.</p>
     <ul class="status">
-      <li class="ok"><b>Firmware v2</b> compiles for the UNO R4 WiFi, with and without CAN</li>
-      <li class="ok"><b>22 desktop test groups</b> pass (state machine, CAN decode, estimate, LED display)</li>
-      <li class="ok"><b>Uploaded to the bench board</b> with CAN off, serial logging on and the LED gear display</li>
+      <li class="ok"><b>Firmware v2</b> compiles for the UNO R4 WiFi, with and without CAN, WiFi and Bluetooth</li>
+      <li class="ok"><b>25 desktop test groups</b> pass (state machine, fault reasons, CAN decode, estimate, LED display, phone data)</li>
+      <li class="ok"><b>Android app</b> built and run on a phone, with demo data</li>
+      <li class="todo"><b>Bench board</b> has the LED display build. The WiFi and Bluetooth build is not uploaded yet</li>
+      <li class="todo"><b>WiFi, Bluetooth and their loop timing</b> are untested on the board</li>
       <li class="todo"><b>Not run on the car.</b> Timing values are starting guesses</li>
       <li class="todo"><b>CAN layout and gear estimate</b> are placeholders and switched off</li>
       <li class="todo"><b>FMEA scores</b> are draft estimates for the team to review</li>
@@ -224,6 +226,7 @@ footer { padding: 28px 0 48px; color: var(--muted); font-size: 13px; }
   <div class="wrap">
     <a href="#physical">Physical architecture</a>
     <a href="#code">Code architecture</a>
+    <a href="#phone">Phone display</a>
     <a href="#fmea">FMEA</a>
     <a href="#open">Open items</a>
   </div>
@@ -273,7 +276,7 @@ footer { padding: 28px 0 48px; color: var(--muted); font-size: 13px; }
         <text class="ts" x="60" y="214"><tspan class="tm">D2</tspan>  neutral switch in (pull-up)</text>
         <text class="ts" x="60" y="232"><tspan class="tm">A0</tspan>  DAC out (12 bit)</text>
         <text class="ts" x="60" y="250">CAN receive via transceiver (TBD)</text>
-        <text class="ts" x="60" y="268">12 x 8 LED matrix shows the gear</text>
+        <text class="ts" x="60" y="268">LED matrix and phone link (WiFi, BLE)</text>
         <text class="ts" x="60" y="286">runs the gear state machine</text>
 
         <!-- CAN, M1 to Arduino -->
@@ -365,10 +368,11 @@ footer { padding: 28px 0 48px; color: var(--muted); font-size: 13px; }
       <tbody>
         <tr><td>Up and down request</td><td>Paddle micro switches</td><td>M1</td><td>Digital</td><td>The M1 accepts switched paddle inputs.</td></tr>
         <tr><td>Solenoid drive</td><td>M1</td><td>Actuator, up and down</td><td>12 V on or off</td><td>The M1 does not control stroke, so the mechanical limits matter.</td></tr>
-        <tr><td>LPS</td><td>Linear position sensor</td><td>Arduino <span class="mono">A2</span></td><td>Analog, 0 to 5 V</td><td>Upshift at or above 3.0 V, downshift at or below 1.5 V. Bench reading is 1.0 to 1.25 V and drifts. Mount to be confirmed.</td></tr>
+        <tr><td>LPS</td><td>Linear position sensor</td><td>Arduino <span class="mono">A2</span></td><td>Analog, 0 to 5 V</td><td>Upshift at or above 3.0 V, downshift at or below 1.5 V. Haltech HT-011201, 50 mm travel. With the car off the sensor is unpowered and A2 floats near 1.0 V. Supply and output range to be confirmed from its spec sheet. Mount to be confirmed.</td></tr>
         <tr><td>Neutral switch</td><td>Gearbox</td><td>Arduino <span class="mono">D2</span></td><td>Digital, pull-up</td><td>LOW means neutral. This is the trusted input.</td></tr>
         <tr><td>Gear voltage</td><td>Arduino <span class="mono">A0</span> DAC</td><td>M1 gear position input</td><td>Analog, 12 bit</td><td>0.5 V for N up to 4.1 V for 6th. 0.0 V means gear not known.</td></tr>
         <tr><td>Gear display</td><td>Arduino</td><td>On-board 12 x 8 LED matrix</td><td>Matrix driver</td><td>A big digit for 1 to 6, N for neutral, a cross when the gear is not known or in FAULT. It shows the tracked gear, which can differ from what the M1 uses in fallback.</td></tr>
+        <tr><td>Phone status</td><td>Arduino radio module</td><td>Phone</td><td>WiFi access point and Bluetooth LE</td><td>Read only diagnostics. See Phone display. Limited to one check per 100 ms each, so the sampling loop is not starved.</td></tr>
         <tr><td>Engine speed, wheel speed, clutch position</td><td>M1</td><td>Arduino</td><td>CAN</td><td>Needs a CAN transceiver, the bit rate and the frame layout. Used only for the gear estimate.</td></tr>
       </tbody>
     </table>
@@ -378,7 +382,7 @@ footer { padding: 28px 0 48px; color: var(--muted); font-size: 13px; }
 <!-- ============================ CODE ============================ -->
 <section id="code">
   <h2>Code architecture</h2>
-  <p class="lede">The Arduino sketch only reads pins, writes the DAC and draws the LED matrix. All decisions live in three plain C++ headers with no Arduino dependency, so a PC can test them.</p>
+  <p class="lede">The Arduino sketch only reads pins, writes the DAC, draws the LED matrix and serves the phone link. All decisions and data formats live in plain C++ headers with no Arduino dependency (state machine, CAN decode, LED display, phone data), so a PC can test them.</p>
 
   <figure>
     <div class="fig-frame">
@@ -556,7 +560,7 @@ footer { padding: 28px 0 48px; color: var(--muted); font-size: 13px; }
         <text class="ts" x="230" y="234" text-anchor="middle">bench reading, about 1.0 V</text>
       </svg>
     </div>
-    <figcaption>The bench reading of 1.0 to 1.25 V falls in the downshift zone, so with the current wiring the LPS looks like a held downshift. It also drifts, which points to a floating input. The 0.2 and 4.8 V range limits are guesses.</figcaption>
+    <figcaption>With the car off the LPS is unpowered, so A2 floats near 1.0 V. That falls in the downshift zone and looks like a held downshift, which is why an unpowered board cycles through FAULT every 2 s. The 0.2 and 4.8 V range limits are guesses.</figcaption>
   </figure>
 
   <div class="grid2">
@@ -569,7 +573,11 @@ footer { padding: 28px 0 48px; color: var(--muted); font-size: 13px; }
             <tr><td class="mono">gps_fsm.h</td><td>Calibration, state machine, output voltage, gear estimate.</td></tr>
             <tr><td class="mono">gps_can.h</td><td>Decodes one signal from a CAN frame.</td></tr>
             <tr><td class="mono">gps_display.h</td><td>Picks the symbol from the state and fills the 12 x 8 frame.</td></tr>
-            <tr><td class="mono">test/test_fsm.cpp</td><td>22 test groups, built with g++ on a PC.</td></tr>
+            <tr><td class="mono">gps_web.h</td><td>Phone status as JSON (WiFi) and a 20 byte packet (Bluetooth).</td></tr>
+            <tr><td class="mono">gps_page.h</td><td>Generated from <span class="mono">web/gear.html</span> by <span class="mono">tools/embed_page.js</span>. The page the board serves.</td></tr>
+            <tr><td class="mono">web/</td><td>The page (one source for the board, the hosted app and the Android app), manifest, offline cache and icons.</td></tr>
+            <tr><td class="mono">android/</td><td>Native Android shell that does the Bluetooth and shows the page. Built with <span class="mono">build.ps1</span>, no Gradle.</td></tr>
+            <tr><td class="mono">test/test_fsm.cpp</td><td>25 test groups, built with g++ on a PC.</td></tr>
           </tbody>
         </table>
       </div>
@@ -577,8 +585,10 @@ footer { padding: 28px 0 48px; color: var(--muted); font-size: 13px; }
     <div class="card">
       <h3>Builds</h3>
       <ul class="plain">
-        <li>Default build, on the board now: 56 KB of 256 KB flash, 21% RAM.</li>
-        <li>CAN build, with <code>GPS_CAN_ENABLED=1</code>: 60 KB, 24% RAM. Uses the Arduino_CAN library that ships with the R4 core.</li>
+        <li>Default build, with WiFi and Bluetooth: 110 KB of 256 KB flash, 30% RAM. Not uploaded yet.</li>
+        <li>Without them, with <code>-DGPS_WIFI_ENABLED=0 -DGPS_BLE_ENABLED=0</code>: 58 KB, 21% RAM. The LED display build, the one on the bench board.</li>
+        <li>CAN, with <code>GPS_CAN_ENABLED=1</code>, adds about 4 KB. Uses the Arduino_CAN library that ships with the R4 core.</li>
+        <li>Bluetooth uses the ArduinoBLE library (2.1.0), which pulled in Arduino_SpiNINA as a dependency.</li>
         <li><code>DEBUG</code> is on. It prints on state changes and once a second, including the furthest LPS voltage of the last shift. Set it to false for the car.</li>
       </ul>
     </div>
@@ -601,10 +611,128 @@ footer { padding: 28px 0 48px; color: var(--muted); font-size: 13px; }
         <tr><td class="mono">EST_AGREE_SAMPLES, EST_DISAGREE_SAMPLES</td><td class="mono">10 (50 ms), 40 (200 ms)</td><td><span class="tag guess">guess</span></td><td>How long the estimate must hold to resolve or override a gear.</td></tr>
         <tr><td class="mono">INVALID_OUTPUT_V</td><td class="mono">0.0</td><td><span class="tag guess">agreed for now</span></td><td>Sent when the gear is not known. The M1 diagnostic limits must treat it as a fault.</td></tr>
         <tr><td class="mono">ASSUME_FIRST_WHEN_LEAVING_NEUTRAL</td><td class="mono">true</td><td><span class="tag guess">assumption</span></td><td>Driver selects 1st by hand from N.</td></tr>
+        <tr><td class="mono">WEB_POLL_MS, BLE_POLL_MS</td><td class="mono">100, 100</td><td><span class="tag guess">guess</span></td><td>How often the sketch services a WiFi request or sends a Bluetooth notification. Longer means less time stolen from sampling.</td></tr>
+        <tr><td class="mono">WEB_SSID, WEB_PASS</td><td class="mono">GearSensor, set in the sketch</td><td><span class="tag guess">choice</span></td><td>The WiFi network name and password. The page is read only, but change the password if it matters.</td></tr>
         <tr><td class="mono">ESTIMATE_ENABLED</td><td class="mono">false</td><td><span class="tag ph">placeholder</span></td><td>Stays off until the values below are measured.</td></tr>
         <tr><td class="mono">RATIO_SCALE, EST_MIN_*, CLUTCH_ENGAGED_MAX</td><td class="mono">1.0, 2000, 50, 5.0</td><td><span class="tag ph">placeholder</span></td><td>Primary reduction, final drive and units, plus gating limits.</td></tr>
       </tbody>
     </table>
+  </div>
+</section>
+
+<!-- ============================ PHONE DISPLAY ============================ -->
+<section id="phone">
+  <h2>Phone display</h2>
+  <p class="lede">A diagnostics view for the bench and the car. The board makes its own WiFi network and also sends the same data over Bluetooth LE. It shows what the code thinks and why, so a fault can be read without a laptop. It does not change what the board sends to the M1.</p>
+
+  <figure>
+    <div class="fig-frame">
+      <svg viewBox="0 0 1000 280" role="img" aria-label="The Arduino sends status over two radio links. A WiFi access point serves a web page to any phone browser. Bluetooth LE sends a 20 byte notification, read by the Android app and by the hosted web app in Chrome.">
+        <defs>
+          <marker id="d-sig" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0L10 5L0 10z" class="mk-ink"/></marker>
+        </defs>
+        <rect class="node-focus" x="30" y="30" width="230" height="220" rx="8"/>
+        <text class="tb" x="145" y="58" text-anchor="middle">Arduino UNO R4 WiFi</text>
+        <text class="ts" x="46" y="94">gear state machine, 5 ms loop</text>
+        <text class="ts" x="46" y="114">gps_web.h builds the status</text>
+        <text class="ts" x="46" y="146">radio calls are rate limited:</text>
+        <text class="ts" x="46" y="164">one check per 100 ms for each</text>
+        <text class="ts" x="46" y="196">longest gap between samples is</text>
+        <text class="ts" x="46" y="214">measured and shown on the page</text>
+
+        <rect class="node" x="340" y="40" width="250" height="76" rx="8"/>
+        <text class="tb" x="465" y="64" text-anchor="middle">WiFi access point</text>
+        <text class="tm" x="465" y="86" text-anchor="middle">GearSensor  192.168.4.1</text>
+        <text class="ts" x="465" y="104" text-anchor="middle">page, then JSON polled 4 times a second</text>
+        <rect class="node" x="340" y="164" width="250" height="76" rx="8"/>
+        <text class="tb" x="465" y="188" text-anchor="middle">Bluetooth LE</text>
+        <text class="tm" x="465" y="210" text-anchor="middle">20 byte notification</text>
+        <text class="ts" x="465" y="228" text-anchor="middle">about 10 a second</text>
+
+        <rect class="node" x="680" y="30" width="290" height="56" rx="8"/>
+        <text class="tb" x="825" y="54" text-anchor="middle">Any phone browser</text>
+        <text class="ts" x="825" y="72" text-anchor="middle">join the WiFi, nothing to install</text>
+        <rect class="node" x="680" y="112" width="290" height="56" rx="8"/>
+        <text class="tb" x="825" y="136" text-anchor="middle">Android app</text>
+        <text class="ts" x="825" y="154" text-anchor="middle">Gear Position Sensor Tester, native Bluetooth</text>
+        <rect class="node" x="680" y="194" width="290" height="56" rx="8"/>
+        <text class="tb" x="825" y="218" text-anchor="middle">Hosted web app</text>
+        <text class="ts" x="825" y="236" text-anchor="middle">Chrome on Android, Bluefy on iPhone</text>
+
+        <path class="w-sig" d="M260 78 L338 78" marker-end="url(#d-sig)"/>
+        <path class="w-sig" d="M260 202 L338 202" marker-end="url(#d-sig)"/>
+        <path class="w-sig" d="M590 78 L638 58 L678 58" marker-end="url(#d-sig)"/>
+        <path class="w-sig" d="M590 202 L630 202"/>
+        <path class="w-sig" d="M630 202 L630 140 L678 140" marker-end="url(#d-sig)"/>
+        <path class="w-sig" d="M630 202 L630 222 L678 222" marker-end="url(#d-sig)"/>
+      </svg>
+    </div>
+    <figcaption>Both links carry the same status. WiFi needs the phone to join the board's network, so the phone has no internet while connected. Bluetooth keeps the phone's normal connection. A Demo button plays a scripted run when there is no board.</figcaption>
+  </figure>
+
+  <div class="grid2">
+    <div class="card">
+      <h3>What it shows</h3>
+      <ul class="plain">
+        <li>The gear in a big ring (X when not known, the same symbol as the LED matrix), and the state: UNKNOWN, ARMED, SHIFTING or FAULT.</li>
+        <li>Gear by LPS count beside gear by CAN estimate, and whether they agree. The estimate shows even while the logic does not use it.</li>
+        <li>CAN status: not built in, started, frames seen but signals stale, or signals fresh.</li>
+        <li>A plain-language reason whenever the gear is not known or in FAULT.</li>
+        <li>LPS voltage on a bar with the 1.5 V and 3.0 V thresholds, neutral switch, output to the M1, last shift peak, a log of changes, and the longest gap between samples.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Ways to connect</h3>
+      <ul class="plain">
+        <li><b>WiFi page.</b> Join <code>GearSensor</code> and open <code>http://192.168.4.1</code>. Works on any phone.</li>
+        <li><b>Android app.</b> Built and installed from the <code>android</code> folder. It scans for the board and reconnects by itself.</li>
+        <li><b>Hosted web app.</b> <code>chithigunatilake.com/GearSensor/live/</code>, unlisted. Web Bluetooth needs HTTPS, so the board cannot serve this one itself.</li>
+        <li><b>Demo.</b> The Demo button plays start-up, shifts, a disagreement, a gear mismatch and both faults.</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3 style="margin-top:24px">Fault reasons</h3>
+  <div class="table-frame">
+    <table>
+      <thead><tr><th>Code</th><th>Shown as</th><th>Cause in the code</th><th>Recovers when</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">1</td><td>Gear not known</td><td>Start-up. Nothing is assumed.</td><td>The neutral switch reads neutral, or the estimate agrees long enough if it is enabled.</td></tr>
+        <tr><td class="mono">2</td><td>Gear lost: LPS and neutral switch disagree</td><td>The LPS count says neutral, the switch says in gear, checked 100 ms after a shift.</td><td>Neutral is seen.</td></tr>
+        <tr><td class="mono">3</td><td>Gear lost: neutral switch opened</td><td>Neutral left with no shift event, only when <code>ASSUME_FIRST_WHEN_LEAVING_NEUTRAL</code> is false.</td><td>Neutral is seen.</td></tr>
+        <tr><td class="mono">4</td><td>FAULT: LPS out of range</td><td>LPS outside 0.2 to 4.8 V for 15 ms.</td><td>The reading is sensible and neutral is seen.</td></tr>
+        <tr><td class="mono">5</td><td>FAULT: LPS did not return to rest</td><td>LPS outside the 1.5 to 3.0 V rest band for over 2 s after a shift.</td><td>The reading is sensible and neutral is seen.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="note">The reason is a reporting-only code in the state machine. It was added without changing any behaviour, and the desktop tests cover each case.</p>
+
+  <div class="grid2" style="margin-top:16px">
+    <div class="card">
+      <h3>Bluetooth data</h3>
+      <p class="note" style="margin-top:0">Service <code>7a1c0001-5e6b-4b0a-9a53-67656172536e</code>, characteristic <code>7a1c0002-...</code>, read and notify, 20 bytes, little endian.</p>
+      <div class="table-frame" style="border:0">
+        <table>
+          <tbody>
+            <tr><td class="mono">0 to 2</td><td>mode, fault, reason code</td></tr>
+            <tr><td class="mono">3, 4</td><td>tracked gear, LED symbol (-1 is a cross)</td></tr>
+            <tr><td class="mono">5</td><td>flags: neutral, estimate used by the logic</td></tr>
+            <tr><td class="mono">6, 7</td><td>CAN estimate, CAN status</td></tr>
+            <tr><td class="mono">8 to 13</td><td>LPS, output and last shift peak, in millivolts</td></tr>
+            <tr><td class="mono">14 to 19</td><td>longest sample gap in ms, CAN frames, uptime in s</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card">
+      <h3>What it costs</h3>
+      <ul class="plain">
+        <li>Every radio call is a round trip to the radio module, and it shares the loop with the 5 ms sampling. Requests are limited to one per 100 ms and a slow client is dropped after 40 ms.</li>
+        <li>The page shows the longest gap between samples. If it climbs above about 50 ms, build for the car with <code>-DGPS_WIFI_ENABLED=0 -DGPS_BLE_ENABLED=0</code>.</li>
+        <li>WiFi and Bluetooth start-up adds a few seconds at boot, while the gear is not known anyway.</li>
+        <li>Neither link can send anything to the board. The page is read only.</li>
+      </ul>
+    </div>
   </div>
 </section>
 
@@ -645,7 +773,7 @@ footer { padding: 28px 0 48px; color: var(--muted); font-size: 13px; }
   <ul class="plain">
     <li>A neutral switch stuck closed is not caught. The code trusts the switch, so a valid estimate in gear cannot overrule it.</li>
     <li>Version 1 read the DAC output back on A1. Version 2 dropped that, so a wrong output voltage is not detected.</li>
-    <li>A floating LPS reads mid-range and passes the range check. It only shows up as a 2 second release timeout.</li>
+    <li>A floating or unpowered LPS reads mid-range and passes the range check. It only shows up as a 2 second release timeout, which the phone display now explains.</li>
     <li>The M1 diagnostic limits and per-gear positions have to be set from the Arduino output before any of this is meaningful.</li>
   </ul>
 </section>
@@ -657,17 +785,18 @@ footer { padding: 28px 0 48px; color: var(--muted); font-size: 13px; }
     <li><b>CAN wiring.</b> The transceiver is wired with TX on D10, which is the R4 CAN TX pin. D3 has no CAN function, so the receive line has to be on D13, the only header pin with CAN RX. If D3 is the transceiver standby or enable pin, the sketch does not drive it yet.</li>
     <li><b>CAN setup.</b> Still needs the bus bit rate and the frame layout for engine speed, wheel speed and clutch position. CAN stays off until then, because a node at the wrong bit rate can disturb the M1 bus.</li>
     <li><b>Estimate calibration.</b> Measure <code>RATIO_SCALE</code>, wheel speed units, clutch position scale and minimum speeds from a logged run, then enable it.</li>
-    <li><b>LPS.</b> Find why the bench reads about 1.25 V, confirm the mount, and set the thresholds from logged shifts.</li>
+    <li><b>LPS.</b> The bench reading near 1.0 V is the unpowered sensor with the car off. With the car on, check the rest reading and travel, confirm supply and output range from the Haltech spec sheet, confirm the mount, and set the thresholds from logged shifts.</li>
+    <li><b>WiFi and Bluetooth.</b> Upload the build that has them and check both start. Read the longest gap between samples on the board and in the car. The Android app has run only with demo data, so the Bluetooth link, notifications and automatic reconnect are untested against the board.</li>
     <li><b>M1 setup.</b> Set the gear position diagnostic limits and delay so 0.0 V is a fault, and learn each gear voltage from the Arduino output.</li>
     <li><b>Timing.</b> Measure the delay from the LPS crossing to the M1 seeing the new gear, against the M1 shift time.</li>
-    <li><b>Firmware.</b> Uploaded with CAN off and <code>DEBUG</code> on. The board reports gear not known and 0.0 V because the neutral switch reads in gear. Set <code>DEBUG</code> to false for the car.</li>
+    <li><b>Firmware.</b> The bench board has the LED display build, with CAN off and <code>DEBUG</code> on. Set <code>DEBUG</code> to false for the car. The current source also has WiFi, Bluetooth and the fault reasons, and is not uploaded yet.</li>
   </ul>
 </section>
 
 </main>
 
 <footer>
-  <div class="wrap">Sources: M1 GPRP configuration manual, the Paddle Shift development notes, and the v2 firmware in GPS_code_v2_fsm.</div>
+  <div class="wrap">Sources: M1 GPRP configuration manual, the Paddle Shift development notes, the Haltech HT-011201 product page, and the v2 firmware in GPS_code_v2_fsm (repository GearSensor).</div>
 </footer>
 
 <script>
@@ -679,11 +808,11 @@ footer { padding: 28px 0 48px; color: var(--muted); font-size: 13px; }
       cause: 'Broken wire, connector, shorted harness',
       control: 'Range check 0.2 to 4.8 V for 15 ms. M1 diagnostic limits.',
       s: 7, o: 4, d: 2, action: 'Set the M1 diagnostic limits and delay so 0.0 V reads as a fault.' },
-    { id: 'F02', sys: 'LPS', mode: 'Floating or disconnected, reads mid-range (bench 1.0 to 1.25 V)',
+    { id: 'F02', sys: 'LPS', mode: 'Floating or disconnected, reads mid-range (about 1.0 V with the car off)',
       effect: 'Looks like a held downshift. One shift is counted, then the 2 s release timeout puts the code in FAULT. Gear tracking is wrong until neutral is seen.',
       cause: 'Missing pull resistor, bad ground, sensor not connected',
       control: 'Release timeout 2 s. The range check does not catch it.',
-      s: 6, o: 5, d: 4, action: 'Find the cause of the 1.25 V reading. Add a sensor presence check.' },
+      s: 6, o: 5, d: 4, action: 'Add a sensor presence check. Confirm the reading with the car powered.' },
     { id: 'F03', sys: 'LPS', mode: 'Drift or offset, thresholds crossed late or never',
       effect: 'Missed or false shift events. The tracked gear is wrong, so the M1 gets the wrong gear for rev matching and over-rev protection.',
       cause: 'Ageing, temperature, mount movement, loose 1.5 and 3.0 V calibration',
@@ -732,7 +861,7 @@ footer { padding: 28px 0 48px; color: var(--muted); font-size: 13px; }
     { id: 'F12', sys: 'Arduino', mode: 'Logic bug in an untested path, or wrong tuning values',
       effect: 'Wrong gear or a false FAULT on the car.',
       cause: 'Constants are guesses and tests ran on a PC only',
-      control: '22 desktop test groups. Bench run only, no car testing yet.',
+      control: '25 desktop test groups. Bench run only, no car testing yet.',
       s: 7, o: 5, d: 4, action: 'Bench test with a signal generator, then log on the car with DEBUG on.' },
     { id: 'F13', sys: 'CAN estimate', mode: 'RATIO_SCALE or units wrong when the estimate is on',
       effect: 'A wrong estimate held for 200 ms replaces the correct LPS gear and the M1 gets the wrong gear.',
@@ -813,7 +942,22 @@ footer { padding: 28px 0 48px; color: var(--muted); font-size: 13px; }
       effect: 'The driver or a mechanic trusts the digit while the M1 is on its own gear estimate, for example after a gear sensor fault. No effect on the output voltage.',
       cause: 'The display shows the tracked gear, and the M1 falls back to its own estimate when it flags a fault',
       control: 'A cross shows when the gear is not known or in FAULT.',
-      s: 3, o: 4, d: 5, action: 'Treat the display as a bench and diagnostic aid. Compare it with the M1 gear channel in logs.' }
+      s: 3, o: 4, d: 5, action: 'Treat the display as a bench and diagnostic aid. Compare it with the M1 gear channel in logs.' },
+    { id: 'F29', sys: 'Arduino', mode: 'WiFi or Bluetooth calls stall the 5 ms sampling loop',
+      effect: 'A shift is detected late, or a short LPS excursion that falls inside a stall is missed. The debounce counts samples, so a stall delays an event rather than creating a false one.',
+      cause: 'Each radio call is a round trip to the radio module, in the same loop as the sampling',
+      control: 'One check per 100 ms for each link, 40 ms limit per request. The longest gap between samples is measured and shown on the page.',
+      s: 7, o: 4, d: 3, action: 'Read the longest gap on the board and in the car. If it climbs above about 50 ms, build with WiFi and Bluetooth off.' },
+    { id: 'F30', sys: 'Arduino', mode: 'WiFi and Bluetooth do not both start, or interfere',
+      effect: 'One link is missing. The serial log says which. The gear logic is not affected.',
+      cause: 'Both share one connection to the radio module. Coexistence is not verified on the board.',
+      control: 'Each link starts on its own and reports failure without stopping the sketch.',
+      s: 3, o: 5, d: 2, action: 'Upload the WiFi and Bluetooth build and check both come up together.' },
+    { id: 'F31', sys: 'Arduino', mode: 'Someone else joins the board WiFi',
+      effect: 'They can read the status. Nothing can be written to the board from the page.',
+      cause: 'Shared WiFi password in the sketch and in the repository',
+      control: 'Read only page. Password needed.',
+      s: 2, o: 3, d: 6, action: 'Change the password if it matters. Build without WiFi for the car.' }
   ];
 
   DATA.forEach(function (r) { r.rpn = r.s * r.o * r.d; });

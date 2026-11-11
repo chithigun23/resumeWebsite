@@ -211,11 +211,12 @@ footer { padding: 28px 0 48px; color: var(--muted); font-size: 13px; }
     <p class="lede ink">An Arduino UNO R4 WiFi reads the shift actuator sensor and the neutral switch, works out which gear the car is in, and sends that gear to the MoTeC M1 GPRP as an analog voltage. This page covers the physical layout, the firmware structure and a draft FMEA.</p>
     <ul class="status">
       <li class="ok"><b>Firmware v2</b> compiles for the UNO R4 WiFi, with and without CAN, WiFi and Bluetooth</li>
-      <li class="ok"><b>25 desktop test groups</b> pass (state machine, fault reasons, CAN decode, estimate, LED display, phone data)</li>
+      <li class="ok"><b>27 desktop test groups</b> pass (state machine, fault reasons, CAN decode, estimate, LED display, phone data)</li>
       <li class="ok"><b>Android app</b> built and run on a phone, with demo data</li>
       <li class="todo"><b>Bench board</b> has the LED display build. The WiFi and Bluetooth build is not uploaded yet</li>
       <li class="todo"><b>WiFi, Bluetooth and their loop timing</b> are untested on the board</li>
-      <li class="todo"><b>Not run on the car.</b> Timing values are starting guesses</li>
+      <li class="todo"><b>One 2 minute car log</b> (2026-11-11) so far. It set the downshift threshold and the neutral wait. Other timing values are still starting guesses</li>
+      <li class="todo"><b>Thresholds are provisional</b> until a fast LPS trace is captured. The fast log is on in the default build</li>
       <li class="todo"><b>CAN layout and gear estimate</b> are placeholders and switched off</li>
       <li class="todo"><b>FMEA scores</b> are draft estimates for the team to review</li>
     </ul>
@@ -343,10 +344,10 @@ footer { padding: 28px 0 48px; color: var(--muted); font-size: 13px; }
       <h3>One shift, step by step</h3>
       <ol class="steps">
         <li>The driver pulls a paddle. The M1 energises the up or down solenoid. The manual suggests a shift time near 150 ms.</li>
-        <li>The actuator moves the selector and the LPS leaves its 1.5 to 3.0 V rest band.</li>
+        <li>The actuator moves the selector and the LPS leaves its 1.8 to 3.0 V rest band.</li>
         <li>After the LPS has stayed past a threshold for 15 ms, the Arduino counts one shift and steps along 1, N, 2, 3, 4, 5, 6. The output changes to the new gear voltage.</li>
         <li>The M1 sees the gear change and ends the shift.</li>
-        <li>The Arduino waits for the LPS to return to rest and for 100 ms to pass, compares the neutral switch with the expected gear, then accepts the next shift.</li>
+        <li>The Arduino waits for the LPS to return to rest, compares the neutral switch with the expected gear from 100 ms after the shift, and gives the switch up to 800 ms to catch up before it calls a disagreement. Then it accepts the next shift. The output keeps the expected gear voltage while it waits.</li>
       </ol>
       <p class="note">From the LPS crossing a threshold to the output changing takes about 15 to 20 ms. That has to stay well inside the M1 shift time.</p>
     </div>
@@ -368,7 +369,7 @@ footer { padding: 28px 0 48px; color: var(--muted); font-size: 13px; }
       <tbody>
         <tr><td>Up and down request</td><td>Paddle micro switches</td><td>M1</td><td>Digital</td><td>The M1 accepts switched paddle inputs.</td></tr>
         <tr><td>Solenoid drive</td><td>M1</td><td>Actuator, up and down</td><td>12 V on or off</td><td>The M1 does not control stroke, so the mechanical limits matter.</td></tr>
-        <tr><td>LPS</td><td>Linear position sensor</td><td>Arduino <span class="mono">A2</span></td><td>Analog, 0 to 5 V</td><td>Upshift at or above 3.0 V, downshift at or below 1.5 V. Haltech HT-011201, 50 mm travel. With the car off the sensor is unpowered and A2 floats near 1.0 V. Supply and output range to be confirmed from its spec sheet. Mount to be confirmed.</td></tr>
+        <tr><td>LPS</td><td>Linear position sensor</td><td>Arduino <span class="mono">A2</span></td><td>Analog, 0 to 5 V</td><td>Upshift at or above 3.0 V, downshift at or below 1.8 V (provisional, set from a car log). Haltech HT-011201, 50 mm travel. With the car off the sensor is unpowered and A2 floats near 1.0 V. Supply and output range to be confirmed from its spec sheet. Mount to be confirmed.</td></tr>
         <tr><td>Neutral switch</td><td>Gearbox</td><td>Arduino <span class="mono">D2</span></td><td>Digital, pull-up</td><td>LOW means neutral. This is the trusted input.</td></tr>
         <tr><td>Gear voltage</td><td>Arduino <span class="mono">A0</span> DAC</td><td>M1 gear position input</td><td>Analog, 12 bit</td><td>0.5 V for N up to 4.1 V for 6th. 0.0 V means gear not known.</td></tr>
         <tr><td>Gear display</td><td>Arduino</td><td>On-board 12 x 8 LED matrix</td><td>Matrix driver</td><td>A big digit for 1 to 6, N for neutral, a cross when the gear is not known or in FAULT. It shows the tracked gear, which can differ from what the M1 uses in fallback.</td></tr>
@@ -458,14 +459,14 @@ footer { padding: 28px 0 48px; color: var(--muted); font-size: 13px; }
 
   <h3>Who is trusted for what</h3>
   <div class="trust">
-    <div class="first"><b>Neutral switch</b>Accurate for whether the car is in neutral. It sets the gear to N and overrides the tracked gear in every running mode.</div>
-    <div class="first"><b>LPS</b>Reliable for when a shift happened and whether it completed. It drives every shift event. The furthest voltage of each shift is logged, so a complete shift can be defined from data.</div>
+    <div class="first"><b>Neutral switch</b>Accurate for whether the car is in neutral, but in the car log it closed 0.16 to 0.54 s after the LPS crossed 3.0 V on a shift into neutral, so it is given 800 ms to catch up. It sets the gear to N and overrides the tracked gear in every running mode.</div>
+    <div class="first"><b>LPS</b>Reliable for when a shift happened, though its downshift dips only reached 1.72 to 1.80 V in the car log, so that threshold is provisional. It drives every shift event. The furthest voltage of each shift is logged, so a complete shift can be defined from data.</div>
     <div class="second"><b>Gear estimate</b>From CAN engine speed, wheel speed and clutch. A cross-check only, off until calibrated. If the LPS shift count and the neutral switch disagree, the gear becomes not known.</div>
   </div>
 
   <figure>
     <div class="fig-frame">
-      <svg viewBox="0 0 1000 380" role="img" aria-label="State machine with four states. Unknown moves to Armed when neutral is confirmed. Armed moves to Wait release on a shift event and back when the sensor rests. A neutral mismatch returns to Unknown. A bad sensor range or a release timeout moves to Fault, and neutral recovers it.">
+      <svg viewBox="0 0 1000 380" role="img" aria-label="State machine with four states. Unknown moves to Armed when neutral is confirmed. Armed moves to Wait release on a shift event and back when the sensor rests and the neutral check is done. A neutral mismatch still present 800 ms after the shift returns to Unknown. A bad sensor range or a release timeout moves to Fault, and neutral recovers it.">
         <defs>
           <marker id="s-ink" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0L10 5L0 10z" class="mk-ink"/></marker>
           <marker id="s-crit" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0L10 5L0 10z" class="mk-crit"/></marker>
@@ -496,14 +497,14 @@ footer { padding: 28px 0 48px; color: var(--muted); font-size: 13px; }
         <!-- ARMED to WAIT -->
         <path class="w-accent" d="M580 108 L776 108" marker-end="url(#s-acc)"/>
         <text class="ts" x="678" y="76" text-anchor="middle">LPS at or above 3.0 V</text>
-        <text class="ts" x="678" y="92" text-anchor="middle">or at or below 1.5 V for 15 ms</text>
+        <text class="ts" x="678" y="92" text-anchor="middle">or at or below 1.8 V for 15 ms</text>
         <!-- WAIT to ARMED -->
         <path class="w-sig" d="M780 144 L584 144" marker-end="url(#s-ink)"/>
-        <text class="ts" x="682" y="178" text-anchor="middle">LPS back in 1.5 to 3.0 V for 15 ms,</text>
-        <text class="ts" x="682" y="194" text-anchor="middle">and 100 ms since the shift</text>
+        <text class="ts" x="682" y="178" text-anchor="middle">LPS back in 1.8 to 3.0 V for 15 ms,</text>
+        <text class="ts" x="682" y="194" text-anchor="middle">and the neutral check is done</text>
         <!-- WAIT to UNKNOWN over the top -->
         <path class="w-sig" d="M865 90 L865 36 L135 36 L135 86" marker-end="url(#s-ink)"/>
-        <text class="ts" x="500" y="28" text-anchor="middle">shift predicted N but the neutral switch says in gear: the two disagree</text>
+        <text class="ts" x="500" y="28" text-anchor="middle">shift predicted N, neutral switch still says in gear 800 ms after the shift: they disagree</text>
         <!-- ARMED to FAULT -->
         <path class="w-fault" d="M470 160 L470 286" marker-end="url(#s-crit)"/>
         <text class="ts" x="460" y="212" text-anchor="end">LPS outside 0.2 to 4.8 V</text>
@@ -518,13 +519,13 @@ footer { padding: 28px 0 48px; color: var(--muted); font-size: 13px; }
         <text class="ts" x="860" y="276" text-anchor="end">return to rest within 2 s</text>
       </svg>
     </div>
-    <figcaption>While ARMED, the neutral switch forces the gear to N whenever it is closed, and a sustained estimate replaces a tracked gear that disagrees with it. Shifts follow the physical order 1, N, 2, 3, 4, 5, 6 and stop at 1 and 6.</figcaption>
+    <figcaption>While ARMED, the neutral switch forces the gear to N whenever it is closed (after a shift it is allowed up to 800 ms to agree first), and a sustained estimate replaces a tracked gear that disagrees with it. Shifts follow the physical order 1, N, 2, 3, 4, 5, 6 and stop at 1 and 6.</figcaption>
   </figure>
 
   <h3>Voltages</h3>
   <figure>
     <div class="fig-frame">
-      <svg viewBox="0 0 1000 250" role="img" aria-label="Two scales from 0 to 5 volts. The output scale marks the gear voltages from 0.5 volts for neutral to 4.1 volts for sixth, with 0.0 volts as invalid. The input scale shows LPS fault zones below 0.2 and above 4.8, a downshift zone to 1.5, a rest zone from 1.5 to 3.0, and an upshift zone above 3.0. The bench reading of about 1.0 volt sits in the downshift zone.">
+      <svg viewBox="0 0 1000 250" role="img" aria-label="Two scales from 0 to 5 volts. The output scale marks the gear voltages from 0.5 volts for neutral to 4.1 volts for sixth, with 0.0 volts as invalid. The input scale shows LPS fault zones below 0.2 and above 4.8, a downshift zone to 1.8, a rest zone from 1.8 to 3.0, and an upshift zone above 3.0. The bench reading of about 1.0 volt sits in the downshift zone.">
         <text class="tz" x="50" y="22">OUTPUT TO THE M1  (A0)</text>
         <line class="axis" x1="50" y1="64" x2="950" y2="64"/>
         <circle class="tick-bad" cx="50" cy="64" r="7"/>
@@ -541,18 +542,18 @@ footer { padding: 28px 0 48px; color: var(--muted); font-size: 13px; }
 
         <text class="tz" x="50" y="136">INPUT FROM THE LPS  (A2)</text>
         <rect class="seg-fault" x="50" y="156" width="36" height="30"/>
-        <rect class="seg-move" x="86" y="156" width="234" height="30"/>
-        <rect class="seg-rest" x="320" y="156" width="270" height="30"/>
+        <rect class="seg-move" x="86" y="156" width="288" height="30"/>
+        <rect class="seg-rest" x="374" y="156" width="216" height="30"/>
         <rect class="seg-move" x="590" y="156" width="324" height="30"/>
         <rect class="seg-fault" x="914" y="156" width="36" height="30"/>
         <text class="ts" x="68" y="150" text-anchor="middle">fault</text>
         <text class="ts" x="932" y="150" text-anchor="middle">fault</text>
-        <text class="tb" x="203" y="176" text-anchor="middle">downshift</text>
-        <text class="tb" x="455" y="176" text-anchor="middle">rest</text>
+        <text class="tb" x="230" y="176" text-anchor="middle">downshift</text>
+        <text class="tb" x="482" y="176" text-anchor="middle">rest</text>
         <text class="tb" x="752" y="176" text-anchor="middle">upshift</text>
         <text class="tm" x="50" y="206" text-anchor="middle">0</text>
         <text class="tm" x="86" y="206" text-anchor="middle">0.2</text>
-        <text class="tm" x="320" y="206" text-anchor="middle">1.5</text>
+        <text class="tm" x="374" y="206" text-anchor="middle">1.8</text>
         <text class="tm" x="590" y="206" text-anchor="middle">3.0</text>
         <text class="tm" x="914" y="206" text-anchor="middle">4.8</text>
         <text class="tm" x="950" y="206" text-anchor="middle">5</text>
@@ -560,7 +561,7 @@ footer { padding: 28px 0 48px; color: var(--muted); font-size: 13px; }
         <text class="ts" x="230" y="234" text-anchor="middle">bench reading, about 1.0 V</text>
       </svg>
     </div>
-    <figcaption>With the car off the LPS is unpowered, so A2 floats near 1.0 V. That falls in the downshift zone and looks like a held downshift, which is why an unpowered board cycles through FAULT every 2 s. The 0.2 and 4.8 V range limits are guesses.</figcaption>
+    <figcaption>With the car off the LPS is unpowered, so A2 floats near 1.0 V. That falls in the downshift zone and looks like a held downshift, which is why an unpowered board cycles through FAULT every 2 s. The 0.2 and 4.8 V range limits are guesses. In the 2026-11-11 car log the LPS rested near 2.0 V after a downshift and near 2.9 V after an upshift, so the rest band is 1.8 to 3.0 V. The 1.8 V edge is provisional until a fast LPS trace is captured.</figcaption>
   </figure>
 
   <div class="grid2">
@@ -577,7 +578,9 @@ footer { padding: 28px 0 48px; color: var(--muted); font-size: 13px; }
             <tr><td class="mono">gps_page.h</td><td>Generated from <span class="mono">web/gear.html</span> by <span class="mono">tools/embed_page.js</span>. The page the board serves.</td></tr>
             <tr><td class="mono">web/</td><td>The page (one source for the board, the hosted app and the Android app), manifest, offline cache and icons.</td></tr>
             <tr><td class="mono">android/</td><td>Native Android shell that does the Bluetooth and shows the page. Built with <span class="mono">build.ps1</span>, no Gradle.</td></tr>
-            <tr><td class="mono">test/test_fsm.cpp</td><td>25 test groups, built with g++ on a PC.</td></tr>
+            <tr><td class="mono">test/test_fsm.cpp</td><td>27 test groups, built with g++ on a PC.</td></tr>
+            <tr><td class="mono">logs/</td><td>Serial captures from the board. The first car log is <span class="mono">shift_log_20261111_123618.txt</span>.</td></tr>
+            <tr><td class="mono">tools/</td><td><span class="mono">capture_log.ps1</span> records the serial output to <span class="mono">logs/</span>. <span class="mono">analyze_fastlog.ps1</span> summarises the fast LPS log. Also the page embed script and the icon maker.</td></tr>
           </tbody>
         </table>
       </div>
@@ -585,8 +588,9 @@ footer { padding: 28px 0 48px; color: var(--muted); font-size: 13px; }
     <div class="card">
       <h3>Builds</h3>
       <ul class="plain">
-        <li>Default build, with WiFi and Bluetooth: 110 KB of 256 KB flash, 30% RAM. Not uploaded yet.</li>
-        <li>Without them, with <code>-DGPS_WIFI_ENABLED=0 -DGPS_BLE_ENABLED=0</code>: 58 KB, 21% RAM. The LED display build, the one on the bench board.</li>
+        <li>Default build, with WiFi, Bluetooth and the fast log: 113072 bytes flash (43%), 12932 bytes RAM (39%).</li>
+        <li>Without the radios and the fast log, with <code>-DGPS_WIFI_ENABLED=0 -DGPS_BLE_ENABLED=0 -DGPS_FASTLOG=0</code>: 57976 bytes flash (22%), 7032 bytes RAM (21%).</li>
+        <li><code>GPS_FASTLOG</code> is on by default and adds about 3 KB flash and 2.5 KB RAM. It keeps the last 256 LPS samples (about 1.3 s at 5 ms) and prints them as CSV lines <code>F,ms,lps_mV,neutral,mode,gear</code> after a gear, mode or neutral change or an LPS swing of 0.35 V or more. Printing takes tens of ms. Build with <code>-DGPS_FASTLOG=0</code> once the thresholds are set.</li>
         <li>CAN, with <code>GPS_CAN_ENABLED=1</code>, adds about 4 KB. Uses the Arduino_CAN library that ships with the R4 core.</li>
         <li>Bluetooth uses the ArduinoBLE library (2.1.0), which pulled in Arduino_SpiNINA as a dependency.</li>
         <li><code>DEBUG</code> is on. It prints on state changes and once a second, including the furthest LPS voltage of the last shift. Set it to false for the car.</li>
@@ -600,12 +604,14 @@ footer { padding: 28px 0 48px; color: var(--muted); font-size: 13px; }
       <thead><tr><th>Name</th><th>Value</th><th>Origin</th><th>Purpose</th></tr></thead>
       <tbody>
         <tr><td class="mono">GEAR_VOLTAGE</td><td class="mono">0.5, 1.1, 1.7, 2.3, 2.9, 3.5, 4.1</td><td><span class="tag v1">from v1</span></td><td>Output voltage for N, 1 to 6. Marked "need to update" in v1.</td></tr>
-        <tr><td class="mono">UPSHIFT_V, DOWNSHIFT_V</td><td class="mono">3.0, 1.5</td><td><span class="tag v1">from v1</span></td><td>LPS thresholds for a shift event. Also the edges of the rest band.</td></tr>
+        <tr><td class="mono">UPSHIFT_V</td><td class="mono">3.0</td><td><span class="tag v1">from v1</span></td><td>LPS at or above this is an upshift. Also the top edge of the rest band. The LPS rests near 2.9 V after an upshift, just under it.</td></tr>
+        <tr><td class="mono">DOWNSHIFT_V</td><td class="mono">1.8 (was 1.5)</td><td><span class="tag guess">guess, from car log</span></td><td>LPS at or below this is a downshift. Also the bottom edge of the rest band. The 2026-11-11 car log never detected a downshift at 1.5 V: the dips reached only 1.72 to 1.80 V, and the LPS rests near 2.0 V after a downshift. Provisional until a fast LPS trace is captured.</td></tr>
         <tr><td class="mono">GEAR_RATIO, EGR_TOL</td><td class="mono">37/13 ... 26/24, 0.05</td><td><span class="tag v1">from v1</span></td><td>Gearbox ratios for the estimate.</td></tr>
         <tr><td class="mono">SAMPLE_PERIOD_MS</td><td class="mono">5</td><td><span class="tag guess">guess</span></td><td>Time between samples.</td></tr>
         <tr><td class="mono">NS_DEBOUNCE_SAMPLES</td><td class="mono">3 (15 ms)</td><td><span class="tag guess">guess</span></td><td>Short, because the switch is trusted.</td></tr>
         <tr><td class="mono">LPS_DEBOUNCE_SAMPLES</td><td class="mono">3 (15 ms)</td><td><span class="tag guess">guess</span></td><td>Same as the neutral switch, since the LPS is reliable for shifts. Raise it if the signal is noisy.</td></tr>
-        <tr><td class="mono">SETTLE_MS</td><td class="mono">100</td><td><span class="tag guess">guess</span></td><td>Wait after a shift before checking the neutral switch.</td></tr>
+        <tr><td class="mono">SETTLE_MS</td><td class="mono">100</td><td><span class="tag guess">guess</span></td><td>Earliest time after a shift that the neutral switch is compared with the expected gear.</td></tr>
+        <tr><td class="mono">NEUTRAL_CONFIRM_MS</td><td class="mono">800</td><td><span class="tag guess">guess</span></td><td>If the switch still disagrees at SETTLE_MS, keep waiting until this long after the shift before calling it a mismatch (gear lost) or a shift that did not land. Set from the 2026-11-11 car log, where the switch closed 0.16 to 0.54 s after the LPS crossed 3.0 V on a shift into neutral.</td></tr>
         <tr><td class="mono">RELEASE_TIMEOUT_MS</td><td class="mono">2000</td><td><span class="tag guess">guess</span></td><td>Longest the LPS may stay out of rest after a shift.</td></tr>
         <tr><td class="mono">LPS_MIN_VALID_V, LPS_MAX_VALID_V</td><td class="mono">0.2, 4.8</td><td><span class="tag guess">guess</span></td><td>Outside this range the LPS is treated as failed.</td></tr>
         <tr><td class="mono">EST_AGREE_SAMPLES, EST_DISAGREE_SAMPLES</td><td class="mono">10 (50 ms), 40 (200 ms)</td><td><span class="tag guess">guess</span></td><td>How long the estimate must hold to resolve or override a gear.</td></tr>
@@ -678,7 +684,7 @@ footer { padding: 28px 0 48px; color: var(--muted); font-size: 13px; }
         <li>Gear by LPS count beside gear by CAN estimate, and whether they agree. The estimate shows even while the logic does not use it.</li>
         <li>CAN status: not built in, started, frames seen but signals stale, or signals fresh.</li>
         <li>A plain-language reason whenever the gear is not known or in FAULT.</li>
-        <li>LPS voltage on a bar with the 1.5 V and 3.0 V thresholds, neutral switch, output to the M1, last shift peak, a log of changes, and the longest gap between samples.</li>
+        <li>LPS voltage on a bar with the 1.8 V down and 3.0 V up thresholds and the 1.8 to 3.0 V rest band, neutral switch, output to the M1, last shift peak, a log of changes, and the longest gap between samples.</li>
       </ul>
     </div>
     <div class="card">
@@ -688,6 +694,7 @@ footer { padding: 28px 0 48px; color: var(--muted); font-size: 13px; }
         <li><b>Android app.</b> Built and installed from the <code>android</code> folder. It scans for the board and reconnects by itself.</li>
         <li><b>Hosted web app.</b> <code>chithigunatilake.com/GearSensor/live/</code>, unlisted. Web Bluetooth needs HTTPS, so the board cannot serve this one itself.</li>
         <li><b>Demo.</b> The Demo button plays start-up, shifts, a disagreement, a gear mismatch and both faults.</li>
+        <li><b>Fast LPS log.</b> Separate from the phone page. The board prints short LPS bursts on the serial port around each change, to capture exact curves for setting thresholds.</li>
       </ul>
     </div>
   </div>
@@ -698,10 +705,10 @@ footer { padding: 28px 0 48px; color: var(--muted); font-size: 13px; }
       <thead><tr><th>Code</th><th>Shown as</th><th>Cause in the code</th><th>Recovers when</th></tr></thead>
       <tbody>
         <tr><td class="mono">1</td><td>Gear not known</td><td>Start-up. Nothing is assumed.</td><td>The neutral switch reads neutral, or the estimate agrees long enough if it is enabled.</td></tr>
-        <tr><td class="mono">2</td><td>Gear lost: LPS and neutral switch disagree</td><td>The LPS count says neutral, the switch says in gear, checked 100 ms after a shift.</td><td>Neutral is seen.</td></tr>
+        <tr><td class="mono">2</td><td>Gear lost: LPS and neutral switch disagree</td><td>The LPS count says neutral, the switch still says in gear 800 ms after the shift. The switch is first checked at 100 ms and given time to catch up. The output keeps the expected gear voltage while it waits.</td><td>Neutral is seen.</td></tr>
         <tr><td class="mono">3</td><td>Gear lost: neutral switch opened</td><td>Neutral left with no shift event, only when <code>ASSUME_FIRST_WHEN_LEAVING_NEUTRAL</code> is false.</td><td>Neutral is seen.</td></tr>
-        <tr><td class="mono">4</td><td>FAULT: LPS out of range</td><td>LPS outside 0.2 to 4.8 V for 15 ms.</td><td>The reading is sensible and neutral is seen.</td></tr>
-        <tr><td class="mono">5</td><td>FAULT: LPS did not return to rest</td><td>LPS outside the 1.5 to 3.0 V rest band for over 2 s after a shift.</td><td>The reading is sensible and neutral is seen.</td></tr>
+        <tr><td class="mono">4</td><td>FAULT: LPS out of range</td><td>LPS outside 0.2 to 4.8 V for 15 ms. This is the sensor range check and is not the 1.8 to 3.0 V rest band.</td><td>The reading is sensible and neutral is seen.</td></tr>
+        <tr><td class="mono">5</td><td>FAULT: LPS did not return to rest</td><td>LPS outside the 1.8 to 3.0 V rest band for over 2 s after a shift.</td><td>The reading is sensible and neutral is seen.</td></tr>
       </tbody>
     </table>
   </div>
@@ -785,11 +792,14 @@ footer { padding: 28px 0 48px; color: var(--muted); font-size: 13px; }
     <li><b>CAN wiring.</b> The transceiver is wired with TX on D10, which is the R4 CAN TX pin. D3 has no CAN function, so the receive line has to be on D13, the only header pin with CAN RX. If D3 is the transceiver standby or enable pin, the sketch does not drive it yet.</li>
     <li><b>CAN setup.</b> Still needs the bus bit rate and the frame layout for engine speed, wheel speed and clutch position. CAN stays off until then, because a node at the wrong bit rate can disturb the M1 bus.</li>
     <li><b>Estimate calibration.</b> Measure <code>RATIO_SCALE</code>, wheel speed units, clutch position scale and minimum speeds from a logged run, then enable it.</li>
-    <li><b>LPS.</b> The bench reading near 1.0 V is the unpowered sensor with the car off. With the car on, check the rest reading and travel, confirm supply and output range from the Haltech spec sheet, confirm the mount, and set the thresholds from logged shifts.</li>
+    <li><b>LPS.</b> The bench reading near 1.0 V is the unpowered sensor with the car off. Confirm supply and output range from the Haltech spec sheet and confirm the mount.</li>
+    <li><b>Thresholds are provisional.</b> The 3.0 V and 1.8 V thresholds and the 1.8 to 3.0 V rest band come from one 2 minute car log. Run the fast LPS log (on in the default build) over many shifts, then set the thresholds from the traces and build with <code>-DGPS_FASTLOG=0</code>.</li>
+    <li><b>Downshift evidence.</b> The log never detected a downshift. The LPS dips reached 1.72 to 1.80 V, and it rests near 2.0 V after a downshift and near 2.9 V after an upshift. 1.8 V is a first fix, not a measured value, and it sits close to the dips.</li>
+    <li><b>Neutral switch lag.</b> The switch closed 0.16 to 0.54 s after the LPS crossed 3.0 V on a shift into neutral. With the old 100 ms wait, 8 of 8 upshifts into neutral were judged a mismatch and the board spent about 96 of 120 s not known. NEUTRAL_CONFIRM_MS is 800 ms. Measure the lag over many shifts and set it from that.</li>
     <li><b>WiFi and Bluetooth.</b> Upload the build that has them and check both start. Read the longest gap between samples on the board and in the car. The Android app has run only with demo data, so the Bluetooth link, notifications and automatic reconnect are untested against the board.</li>
     <li><b>M1 setup.</b> Set the gear position diagnostic limits and delay so 0.0 V is a fault, and learn each gear voltage from the Arduino output.</li>
     <li><b>Timing.</b> Measure the delay from the LPS crossing to the M1 seeing the new gear, against the M1 shift time.</li>
-    <li><b>Firmware.</b> The bench board has the LED display build, with CAN off and <code>DEBUG</code> on. Set <code>DEBUG</code> to false for the car. The current source also has WiFi, Bluetooth and the fault reasons, and is not uploaded yet.</li>
+    <li><b>Firmware.</b> The bench board has the LED display build, with CAN off and <code>DEBUG</code> on. Set <code>DEBUG</code> to false for the car. The current source also has WiFi, Bluetooth, the fault reasons, the fast LPS log and the new thresholds, and is not uploaded yet.</li>
   </ul>
 </section>
 
@@ -815,7 +825,7 @@ footer { padding: 28px 0 48px; color: var(--muted); font-size: 13px; }
       s: 6, o: 5, d: 4, action: 'Add a sensor presence check. Confirm the reading with the car powered.' },
     { id: 'F03', sys: 'LPS', mode: 'Drift or offset, thresholds crossed late or never',
       effect: 'Missed or false shift events. The tracked gear is wrong, so the M1 gets the wrong gear for rev matching and over-rev protection.',
-      cause: 'Ageing, temperature, mount movement, loose 1.5 and 3.0 V calibration',
+      cause: 'Ageing, temperature, mount movement, loose 1.8 and 3.0 V calibration',
       control: 'Neutral switch corrects at N. Estimate cross-check once enabled.',
       s: 8, o: 4, d: 6, action: 'Log the LPS through real shifts and set thresholds from data, using the logged shift peak to define a complete shift. Calibrate and enable the estimate.' },
     { id: 'F04', sys: 'LPS', mode: 'Electrical noise on the signal',
@@ -861,7 +871,7 @@ footer { padding: 28px 0 48px; color: var(--muted); font-size: 13px; }
     { id: 'F12', sys: 'Arduino', mode: 'Logic bug in an untested path, or wrong tuning values',
       effect: 'Wrong gear or a false FAULT on the car.',
       cause: 'Constants are guesses and tests ran on a PC only',
-      control: '25 desktop test groups. Bench run only, no car testing yet.',
+      control: '27 desktop test groups. One 2 minute car log so far.',
       s: 7, o: 5, d: 4, action: 'Bench test with a signal generator, then log on the car with DEBUG on.' },
     { id: 'F13', sys: 'CAN estimate', mode: 'RATIO_SCALE or units wrong when the estimate is on',
       effect: 'A wrong estimate held for 200 ms replaces the correct LPS gear and the M1 gets the wrong gear.',
@@ -947,7 +957,7 @@ footer { padding: 28px 0 48px; color: var(--muted); font-size: 13px; }
       effect: 'A shift is detected late, or a short LPS excursion that falls inside a stall is missed. The debounce counts samples, so a stall delays an event rather than creating a false one.',
       cause: 'Each radio call is a round trip to the radio module, in the same loop as the sampling',
       control: 'One check per 100 ms for each link, 40 ms limit per request. The longest gap between samples is measured and shown on the page.',
-      s: 7, o: 4, d: 3, action: 'Read the longest gap on the board and in the car. If it climbs above about 50 ms, build with WiFi and Bluetooth off.' },
+      s: 7, o: 4, d: 3, action: 'Read the longest gap on the board and in the car. If it climbs above about 50 ms, build with WiFi and Bluetooth off. The 2026-11-11 car log showed a longest sample gap of 163 ms and a longest radio step of about 93 ms.' },
     { id: 'F30', sys: 'Arduino', mode: 'WiFi and Bluetooth do not both start, or interfere',
       effect: 'One link is missing. The serial log says which. The gear logic is not affected.',
       cause: 'Both share one connection to the radio module. Coexistence is not verified on the board.',
@@ -957,7 +967,17 @@ footer { padding: 28px 0 48px; color: var(--muted); font-size: 13px; }
       effect: 'They can read the status. Nothing can be written to the board from the page.',
       cause: 'Shared WiFi password in the sketch and in the repository',
       control: 'Read only page. Password needed.',
-      s: 2, o: 3, d: 6, action: 'Change the password if it matters. Build without WiFi for the car.' }
+      s: 2, o: 3, d: 6, action: 'Change the password if it matters. Build without WiFi for the car.' },
+    { id: 'F32', sys: 'LPS', mode: 'Downshift stroke does not reach the downshift threshold',
+      effect: 'Downshifts are missed, so the gear count is wrong. The 2026-11-11 car log never detected a downshift at 1.5 V.',
+      cause: 'Threshold above the real travel. The dips reached only 1.72 to 1.80 V.',
+      control: 'The neutral switch corrects the gear at N. The car log and the fast LPS log show the real curve.',
+      s: 8, o: 6, d: 5, action: 'Set the thresholds from a fast LPS trace.' },
+    { id: 'F33', sys: 'Neutral switch', mode: 'Neutral switch lags the LPS by up to about 0.5 s',
+      effect: 'A false mismatch, so the gear is lost and the output drops to 0.00 V. In the car log all 8 upshifts into neutral were judged a mismatch and the board spent about 96 of 120 s not known.',
+      cause: 'The switch closes 0.16 to 0.54 s after the LPS crosses 3.0 V on a shift into neutral.',
+      control: '800 ms confirm wait (NEUTRAL_CONFIRM_MS). The output keeps the expected gear while it waits.',
+      s: 6, o: 6, d: 4, action: 'Measure the lag over many shifts and set NEUTRAL_CONFIRM_MS from it.' }
   ];
 
   DATA.forEach(function (r) { r.rpn = r.s * r.o * r.d; });

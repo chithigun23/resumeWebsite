@@ -211,7 +211,8 @@ footer { padding: 28px 0 48px; color: var(--muted); font-size: 13px; }
     <p class="lede ink">An Arduino UNO R4 WiFi reads the shift actuator sensor and the neutral switch, works out which gear the car is in, and sends that gear to the MoTeC M1 GPRP as an analog voltage. This page covers the physical layout, the firmware structure and a draft FMEA.</p>
     <ul class="status">
       <li class="ok"><b>Firmware v2</b> compiles for the UNO R4 WiFi, with and without CAN, WiFi and Bluetooth</li>
-      <li class="ok"><b>28 desktop test groups</b> pass (state machine, fault reasons, CAN decode, estimate, LED display, phone data, and the real threshold margins from the hand-shift log)</li>
+      <li class="ok"><b>29 desktop test groups</b> pass (state machine, fault reasons, CAN decode, estimate, LED display, phone data, the real threshold margins from the hand-shift log, and the 300 ms shift lockout)</li>
+      <li class="ok"><b>300 ms shift lockout</b> (2026-11-11): the Arduino counted two shifts very close together once, so no new shift event can start within 300 ms of the last, and the next needs a fresh crossing. Running on the bench board</li>
       <li class="ok"><b>Android app</b> built and run on a phone, with demo data</li>
       <li class="ok"><b>Gear model fitted to the car</b> (2026-11-11): a full 1-2 or 2-1 stroke skips neutral, the neutral switch must stay closed 300 ms to count</li>
       <li class="ok"><b>Serial at 921600 baud</b>: the status line costs 1.8 ms instead of 175 ms. Phone data every 50 ms with the LPS range</li>
@@ -348,9 +349,9 @@ footer { padding: 28px 0 48px; color: var(--muted); font-size: 13px; }
       <ol class="steps">
         <li>The driver pulls a paddle. The M1 energises the up or down solenoid. The manual suggests a shift time near 150 ms.</li>
         <li>The actuator moves the selector and the LPS leaves its 1.775 to 3.10 V rest band.</li>
-        <li>After the LPS has stayed past a threshold for 15 ms (30 ms for a downshift), the Arduino counts one shift and moves one gear. 1 and 2 swap places and neutral is skipped, because a full stroke passes neutral without stopping there. From N an upshift lands in 2 and a downshift in 1. The output changes to the new gear voltage. The neutral switch flashes closed during a 1-2 or 2-1 stroke (75 ms measured) and that is ignored, since it must stay closed 300 ms to count.</li>
+        <li>After the LPS has stayed past a threshold for 15 ms (30 ms for a downshift), the Arduino counts one shift and moves one gear. 1 and 2 swap places and neutral is skipped, because a full stroke passes neutral without stopping there. From N an upshift lands in 2 and a downshift in 1. The output changes to the new gear voltage. The neutral switch flashes closed during a 1-2 or 2-1 stroke (75 ms measured) and that is ignored, since it must stay closed 300 ms to count. A shift takes about 300 ms, so no other shift can be counted for 300 ms after this one.</li>
         <li>The M1 sees the gear change and ends the shift.</li>
-        <li>The Arduino waits for the LPS to return to rest and checks the neutral switch from 100 ms after the shift. A shift never lands in N, so a neutral switch that is still closed 800 ms after the shift means the shift did not land, and the gear is set to N. Then it accepts the next shift. The output keeps the new gear voltage while it waits.</li>
+        <li>The Arduino waits for the LPS to return to rest and checks the neutral switch from 100 ms after the shift. A shift never lands in N, so a neutral switch that is still closed 800 ms after the shift means the shift did not land, and the gear is set to N. Then it accepts the next shift, but only once 300 ms have passed since the last one (SHIFT_LOCKOUT_MS) and the LPS has been seen on the rest side of the threshold after that. A bounce back over a threshold during the shift, or one still held past 300 ms, is the same shift and is not counted again. The output keeps the new gear voltage while it waits.</li>
       </ol>
       <p class="note">From the LPS crossing a threshold to the output changing takes about 15 to 20 ms. That has to stay well inside the M1 shift time.</p>
     </div>
@@ -471,7 +472,7 @@ footer { padding: 28px 0 48px; color: var(--muted); font-size: 13px; }
 
   <figure>
     <div class="fig-frame">
-      <svg viewBox="0 0 1000 380" role="img" aria-label="State machine with four states. Unknown moves to Armed when the neutral switch has stayed closed 300 ms. Armed moves to Wait release on a shift event, which moves one gear and never lands in neutral, and back when the sensor rests and the neutral check is done. A neutral switch still closed 800 ms after a shift means the shift did not land, and the gear becomes N. A bad sensor range or a release timeout moves to Fault, and neutral recovers it.">
+      <svg viewBox="0 0 1000 380" role="img" aria-label="State machine with four states. Unknown moves to Armed when the neutral switch has stayed closed 300 ms. Armed moves to Wait release on a shift event, at least 300 ms after the last one, which moves one gear and never lands in neutral, and back when the sensor rests and the neutral check is done. A neutral switch still closed 800 ms after a shift means the shift did not land, and the gear becomes N. A bad sensor range or a release timeout moves to Fault, and neutral recovers it.">
         <defs>
           <marker id="s-ink" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0L10 5L0 10z" class="mk-ink"/></marker>
           <marker id="s-crit" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0L10 5L0 10z" class="mk-crit"/></marker>
@@ -503,6 +504,7 @@ footer { padding: 28px 0 48px; color: var(--muted); font-size: 13px; }
         <path class="w-accent" d="M580 108 L776 108" marker-end="url(#s-acc)"/>
         <text class="ts" x="678" y="76" text-anchor="middle">LPS at or above 3.10 V for 15 ms</text>
         <text class="ts" x="678" y="92" text-anchor="middle">or at or below 1.775 V for 30 ms</text>
+        <text class="ts" x="678" y="130" text-anchor="middle">and 300 ms since the last shift</text>
         <!-- WAIT to ARMED -->
         <path class="w-sig" d="M780 144 L584 144" marker-end="url(#s-ink)"/>
         <text class="ts" x="682" y="178" text-anchor="middle">LPS back in 1.775 to 3.10 V for 15 ms,</text>
@@ -525,7 +527,7 @@ footer { padding: 28px 0 48px; color: var(--muted); font-size: 13px; }
         <text class="ts" x="860" y="276" text-anchor="end">return to rest within 2 s</text>
       </svg>
     </div>
-    <figcaption>While ARMED, the neutral switch forces the gear to N once it has stayed closed 300 ms, and a sustained estimate replaces a tracked gear that disagrees with it. A shift moves one gear and stops at 1 and 6. 1 and 2 swap places with neutral skipped, and from N an upshift lands in 2 and a downshift in 1. When the switch opens while in N, the code waits 100 ms for an LPS stroke: a paddle shift sets 2 or 1 from the stroke, and with no stroke it assumes a hand shift to 1st. The old arrow from WAIT_RELEASE to UNKNOWN (reason 2) is gone because a shift can no longer predict N.</figcaption>
+    <figcaption>While ARMED, the neutral switch forces the gear to N once it has stayed closed 300 ms, and a sustained estimate replaces a tracked gear that disagrees with it. A shift moves one gear and stops at 1 and 6. 1 and 2 swap places with neutral skipped, and from N an upshift lands in 2 and a downshift in 1. When the switch opens while in N, the code waits 100 ms for an LPS stroke: a paddle shift sets 2 or 1 from the stroke, and with no stroke it assumes a hand shift to 1st. A new shift event also needs 300 ms since the last one (SHIFT_LOCKOUT_MS) and a fresh crossing: after the lockout the LPS must be seen on the rest side of the threshold first, so a bounce held past 300 ms does not count either. The old arrow from WAIT_RELEASE to UNKNOWN (reason 2) is gone because a shift can no longer predict N.</figcaption>
   </figure>
 
   <h3>Voltages</h3>
@@ -584,7 +586,7 @@ footer { padding: 28px 0 48px; color: var(--muted); font-size: 13px; }
             <tr><td class="mono">gps_page.h</td><td>Generated from <span class="mono">web/gear.html</span> by <span class="mono">tools/embed_page.js</span>. The page the board serves.</td></tr>
             <tr><td class="mono">web/</td><td>The page (one source for the board, the hosted app and the Android app), manifest, offline cache and icons.</td></tr>
             <tr><td class="mono">android/</td><td>Native Android shell that does the Bluetooth and shows the page. Built with <span class="mono">build.ps1</span>, no Gradle.</td></tr>
-            <tr><td class="mono">test/test_fsm.cpp</td><td>28 test groups, built with g++ on a PC. All pass.</td></tr>
+            <tr><td class="mono">test/test_fsm.cpp</td><td>29 test groups, built with g++ on a PC. All pass.</td></tr>
             <tr><td class="mono">logs/</td><td>Serial captures from the board. Car logs: <span class="mono">shift_log_20261111_123618.txt</span> (first, with the neutral switch flash read as a mismatch) and <span class="mono">shift_run2_20261111_124841.txt</span> (second, with sampling gaps from 9600 baud serial) and <span class="mono">shift_run3_20261111_132131.txt</span> (third, 921600 baud, hand shifts, no logging stalls). Bench rate tests: <span class="mono">ratetest_20261111_130523.txt</span> (before the baud change: worst gap 175 ms idle, up to 222 ms with a Bluetooth subscriber) and <span class="mono">ratetest2_20261111_131156.txt</span> (after: 15 ms idle, up to 47 ms).</td></tr>
             <tr><td class="mono">tools/</td><td><span class="mono">capture_log.ps1</span> records the serial output to <span class="mono">logs/</span>, reading in bulk at 921600 baud by default. <span class="mono">analyze_fastlog.ps1</span> summarises the fast LPS log. Also the page embed script and the icon maker.</td></tr>
           </tbody>
@@ -594,7 +596,7 @@ footer { padding: 28px 0 48px; color: var(--muted); font-size: 13px; }
     <div class="card">
       <h3>Builds</h3>
       <ul class="plain">
-        <li>Default build, with WiFi, Bluetooth and the fast log: 114456 bytes flash (43%), 14000 bytes RAM (42%).</li>
+        <li>Default build, with WiFi, Bluetooth and the fast log: 114384 bytes flash (43%), 14000 bytes RAM (42%).</li>
         <li>For the car, without the radios and the fast log, with <code>-DGPS_WIFI_ENABLED=0 -DGPS_BLE_ENABLED=0 -DGPS_FASTLOG=0</code>: 58256 bytes flash (22%), 7056 bytes RAM (21%).</li>
         <li><code>GPS_FASTLOG</code> is on by default and adds about 3 KB flash and 2.5 KB RAM. It keeps the last 256 LPS samples (about 1.3 s at 5 ms) and prints them as CSV lines <code>F,ms,lps_mV,neutral,mode,gear</code> after a gear, mode or neutral change or an LPS swing of 0.35 V or more. <code>Serial.write</code> blocks and <code>Serial.availableForWrite()</code> returns 0 on this core, so the dump works from a snapshot, writes two lines per loop, and abandons a dump if one write takes over 3 ms (counter <code>fastlog_aborted</code> in the status line). Use a capture tool that reads in bulk. Build with <code>-DGPS_FASTLOG=0</code> once the thresholds are set.</li>
         <li>CAN, with <code>GPS_CAN_ENABLED=1</code>, adds about 4 KB. Uses the Arduino_CAN library that ships with the R4 core.</li>
@@ -619,6 +621,7 @@ footer { padding: 28px 0 48px; color: var(--muted); font-size: 13px; }
         <tr><td class="mono">LEAVE_NEUTRAL_GRACE_MS</td><td class="mono">100</td><td><span class="tag guess">guess</span></td><td>After the switch leaves neutral, how long to wait for an LPS stroke before assuming a hand shift to 1st. A paddle shift out of N moves the LPS at the same moment and sets 2nd or 1st directly.</td></tr>
         <tr><td class="mono">LPS_DEBOUNCE_SAMPLES</td><td class="mono">3 (15 ms)</td><td><span class="tag guess">guess</span></td><td>Filter for upshifts, the LPS range check and the return to rest. The same as the neutral switch, since the LPS is reliable for shifts. Raise it if the signal is noisy.</td></tr>
         <tr><td class="mono">LPS_DOWN_DEBOUNCE_SAMPLES</td><td class="mono">6 (30 ms)</td><td><span class="tag guess">guess, from car log</span></td><td>Filter for downshifts only. The rest after a downshift is only tens of mV above DOWNSHIFT_V, so a short wobble must not count. The downshift dips in the third log stayed below the threshold for 90 to 565 ms, so 30 ms does not lose a real downshift.</td></tr>
+        <tr><td class="mono">SHIFT_LOCKOUT_MS</td><td class="mono">300</td><td><span class="tag guess">user: a shift takes about 300 ms</span></td><td>After a shift event no new shift event can start for this long, because two events closer than a shift takes are one shift seen twice (the LPS bouncing back over a threshold after the state machine re-armed, about 115 ms after an event). The next event also needs a fresh crossing: the LPS must be seen on the rest side of that threshold after the lockout ends, so a bounce held past 300 ms does not count either. Added after the Arduino counted two shifts very close together.</td></tr>
         <tr><td class="mono">SETTLE_MS</td><td class="mono">100</td><td><span class="tag guess">guess</span></td><td>Earliest time after a shift that the neutral switch is compared with the expected gear.</td></tr>
         <tr><td class="mono">NEUTRAL_CONFIRM_MS</td><td class="mono">800</td><td><span class="tag guess">guess</span></td><td>Only matters when a stroke ends in neutral. If the switch is still closed this long after a shift, the shift did not land and the gear is set to N. Before that the output keeps the new gear voltage. It no longer covers a slow neutral switch: the first car log was first read as the switch lagging the LPS by 0.16 to 0.54 s, but those were 1st to 2nd upshifts whose switch flash looked like a shift into neutral.</td></tr>
         <tr><td class="mono">RELEASE_TIMEOUT_MS</td><td class="mono">2000</td><td><span class="tag guess">guess</span></td><td>Longest the LPS may stay out of rest after a shift.</td></tr>
@@ -850,7 +853,7 @@ footer { padding: 28px 0 48px; color: var(--muted); font-size: 13px; }
     { id: 'F04', sys: 'LPS', mode: 'Electrical noise on the signal',
       effect: 'False shift events, then a gear count error.',
       cause: 'Ignition noise, long unshielded harness',
-      control: 'LPS debounce, 15 ms for upshifts and 30 ms for downshifts.',
+      control: 'LPS debounce, 15 ms for upshifts and 30 ms for downshifts. After a shift, noise cannot start another shift for 300 ms (SHIFT_LOCKOUT_MS) and the next one needs a fresh crossing.',
       s: 6, o: 4, d: 3, action: 'Use shielded cable and an RC filter. Check on a scope.' },
     { id: 'F05', sys: 'Neutral switch', mode: 'Stuck closed, always reads neutral',
       effect: 'The code forces gear N on every sample and sends 0.5 V while in gear. The estimate cannot overrule the switch.',
@@ -910,7 +913,7 @@ footer { padding: 28px 0 48px; color: var(--muted); font-size: 13px; }
     { id: 'F16', sys: 'Arduino', mode: 'Intermittent contact on LPS, switch or DAC wiring',
       effect: 'Intermittent faults and false events.',
       cause: 'Vibration, weak connectors',
-      control: 'Debounce, range check.',
+      control: 'Debounce, range check. The 300 ms shift lockout stops a flicker right after a shift from counting as another shift.',
       s: 6, o: 6, d: 5, action: 'Locking connectors, strain relief, twisted shielded pairs.' },
     { id: 'F17', sys: 'Actuation', mode: 'Actuator stroke too short or too long',
       effect: 'Incomplete shift or a skipped gear. The LPS may not cross a threshold, so the event is missed.',
@@ -1011,7 +1014,12 @@ footer { padding: 28px 0 48px; color: var(--muted); font-size: 13px; }
       effect: 'A small wobble or drift at rest can read as a downshift, so the tracked gear drops one gear that was never selected and the M1 gets the wrong gear. The effect is worse after a downshift than an upshift.',
       cause: 'With hand shifts the LPS stays where the hand leaves it. In the third car log the rest after a downshift was 1.81 to 1.88 V against a threshold of 1.775 V, only about 30 to 35 mV above it (the dips reached 1.72 to 1.745 V). The upshift side has about 0.18 V each side.',
       control: 'The downshift must hold 6 samples (30 ms, LPS_DOWN_DEBOUNCE_SAMPLES), while real downshift dips stayed below the threshold for 90 to 565 ms. Desktop test test_hand_shift_margins pins the real values.',
-      s: 7, o: 5, d: 5, action: 'Set the thresholds again with the actuator fitted, from a log of its rest voltages. Until then watch for a downshift that appears with no stroke.' }
+      s: 7, o: 5, d: 5, action: 'Set the thresholds again with the actuator fitted, from a log of its rest voltages. Until then watch for a downshift that appears with no stroke.' },
+    { id: 'F37', sys: 'LPS', mode: 'LPS bounces back over a threshold after a shift and is counted as a second shift',
+      effect: 'One shift is counted twice, so the tracked gear is one too high or too low and the M1 gets the wrong gear until neutral corrects it. The user saw the Arduino count two shifts very close together.',
+      cause: 'The state machine re-arms about 115 ms after a shift event, while a shift takes about 300 ms (user). The LPS can bounce back over the threshold in that gap, or settle across it, and look like a new stroke.',
+      control: 'SHIFT_LOCKOUT_MS: no new shift event within 300 ms of the last. The next event also needs a fresh crossing, so the LPS must be seen on the rest side of the threshold after the lockout ends, which stops a bounce held past 300 ms. Desktop test test_double_shift_lockout fails without the lockout and passes with it, for upshifts and downshifts.',
+      s: 7, o: 4, d: 5, action: 'S 7 as F36: wrong gear by one, recovered at neutral. O 4 because it was seen on the bench before the fix and the lockout is now in place, but only tested on the bench and on the PC. D 5 because a wrong count is only found at neutral or by the estimate, which is off. Check with a log across many shifts, with the actuator fitted, that no shift pair is closer than 300 ms and that a real stroke never takes longer than 300 ms to leave the threshold. Two real shifts less than 300 ms apart would be merged, which is intended.' }
   ];
 
   DATA.forEach(function (r) { r.rpn = r.s * r.o * r.d; });

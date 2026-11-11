@@ -147,10 +147,8 @@ function demoBuild(){
  F.push([1800,{m:1,g:0,d:0,o:500,n:1,e:-1}]);               // neutral found
  gear(2,-1,1,3500);gear(3,3,1,3520);gear(4,4,1,3480);gear(5,4,1,3510); // CAN estimate disagrees on 5th
  F.push([1800,{m:1,g:5,d:5,o:3500,n:0,l:2100,p:3510,e:4}]);
- gear(6,6,1,3530);gear(5,5,-1,980);gear(4,4,-1,1010);gear(3,3,-1,990);gear(2,2,-1,1000);gear(0,-1,-1,1005);
- F.push([700,{m:2,g:0,d:0,o:500,n:0,l:1000,p:1000,e:-1}]); // LPS says neutral, switch says in gear
- F.push([4000,{m:0,w:2,g:-1,d:-1,o:0,n:0,l:2100,p:1000,e:-1}]);
- F.push([1800,{m:1,g:0,d:0,o:500,n:1,l:2100,e:-1}]);         // neutral seen again
+ gear(6,6,1,3530);gear(5,5,-1,980);gear(4,4,-1,1010);gear(3,3,-1,990);gear(2,2,-1,1000);gear(1,-1,-1,990); // 2 -> 1 skips neutral
+ F.push([2500,{m:1,g:0,d:0,o:500,n:1,l:2500,p:990,e:-1}]);   // half shift into neutral by hand
  F.push([4000,{m:3,f:1,w:4,g:0,d:-1,o:0,n:1,l:40,e:-1}]);    // LPS out of range
  F.push([1800,{m:1,g:0,d:0,o:500,n:1,l:2100,e:-1}]);
  F.push([4500,{m:3,f:2,w:5,g:2,d:-1,o:0,n:0,l:3400,p:3400,e:-1}]); // LPS did not return to rest

@@ -81,9 +81,9 @@ h2{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--mute
 <h2>Linear position sensor</h2>
 <div class="panel"><div class="row"><span>LPS</span><b id="lps">-</b></div>
 <div id="bar"><div id="fill"></div><div id="rng"></div>
-<div class="mk f" style="left:4%"></div><div class="mk" style="left:36%"></div>
-<div class="mk" style="left:60%"></div><div class="mk f" style="left:96%"></div></div>
-<div id="sc"><span>0</span><span>1.8 down</span><span>3.0 up</span><span>5 V</span></div></div>
+<div class="mk f" style="left:4%"></div><div class="mk" style="left:35.5%"></div>
+<div class="mk" style="left:62%"></div><div class="mk f" style="left:96%"></div></div>
+<div id="sc"><span>0</span><span>1.78 down</span><span>3.1 up</span><span>5 V</span></div></div>
 <h2>Events</h2>
 <div class="panel"><div id="log">-</div></div>
 <div id="stat"></div>
@@ -96,7 +96,7 @@ var WHY=[
  ['Gear lost: LPS and neutral switch disagree','The LPS counted a shift into neutral but the neutral switch says the car is in gear. The gear is unknown until neutral is seen.'],
  ['Gear lost: neutral switch opened','The neutral switch left neutral with no shift event, and assuming 1st is turned off. The gear is unknown until neutral is seen.'],
  ['FAULT: LPS out of range','The LPS voltage is outside 0.2 to 4.8 V. Check the sensor wiring, power and ground. It recovers when the reading is sensible and the neutral switch shows neutral.'],
- ['FAULT: LPS did not return to rest','After a shift the LPS stayed outside the 1.8 to 3.0 V rest band for over 2 s. The sensor or linkage is held, or the sensor does not rest inside the band. It recovers when the reading is sensible and the neutral switch shows neutral.']
+ ['FAULT: LPS did not return to rest','After a shift the LPS stayed outside the 1.78 to 3.1 V rest band for over 2 s. The sensor or linkage is held, or the sensor does not rest inside the band. It recovers when the reading is sensible and the neutral switch shows neutral.']
 ];
 var $=function(i){return document.getElementById(i)},last=null,log=[],TRANSPORT='WiFi',demoOn=false;
 function v(mv){return (mv/1000).toFixed(2)+' V'}
